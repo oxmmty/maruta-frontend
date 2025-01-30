@@ -1,0 +1,169 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "Noto Sans JP" !important;
+  line-height: 1;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --colorPrimary: #1677ff;
+  --colorSuccess: #52c41a;
+  --colorWarning: #faad14;
+  --colorError: #ff4d4f;
+  --colorLink: #1668dc;
+
+  --bg-dark: #f4f6f9;
+  --bg-light: #ffffff;
+  --bg-light-dark: #ffffffea;
+  --base-200: #e8eef6;
+  --base-500: #f3f3f3;
+  --base-600: #f2f2f2;
+  --base-700: #f1f1f1;
+  --base-800: #f0f0f0;
+  --base-900: #efefef;
+  --txt-100: #5b5c5f;
+  --text-200: #5c5c5c;
+  --text-300: #a7a7a7;
+  --border-100: #ccd7e9;
+  --base-primary: #00b96b;
+  --hover-primary: #dffbec;
+  --text-special: rgb(224, 211, 211);
+}
+
+.dark {
+  --bg-dark: #111621;
+  --bg-light: #1f2634;
+  --bg-light-dark: #2a3142;
+  --base-200: #1d1d1d;
+  --base-500: #464646;
+  --base-600: #565656;
+  --base-700: #666666;
+  --base-800: #767676;
+  --txt-100: #8e9db2;
+  --text-200: #b4b4b4;
+  --text-300: #7a7a7a;
+  --border-100: #313d50;
+  --base-primary: #dde000;
+  --hover-primary: #242813;
+  --text-special: rgb(224, 211, 211);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+::-webkit-scrollbar {
+  width: 1px;
+  height: 1px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-corner {
+  display: none;
+}
+
+::-webkit-scrollbar-track {
+  background: #0000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 1px;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+body {
+  color: var(--txt-100);
+  background-color: var(--bg-dark);
+}
+
+ul.ant-menu {
+  border-inline-end: 0px !important;
+}
+
+.long-text {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ant-form-item-label {
+  padding: 0 !important;
+}
+
+html,
+body {
+  font-family: "Noto Sans JP" !important;
+  font-size: 16px; /* optional to set a default size */
+  line-height: 1.5; /* optional to set line-height for readability */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a,
+span,
+div {
+  font-family: "Noto Sans JP";
+}
+
+/* Optional: Override other text elements */
+input,
+button,
+textarea {
+  font-family: "Noto Sans JP";
+}
+.apexcharts-legend-text,
+.apexcharts-text tspan,
+.apexcharts-datalabels-group {
+  font-family: "Noto Sans JP" !important;
+  fill: var(--txt-100);
+  font-size: 12px;
+  color: var(--txt-100) !important;
+}
+.ant-anchor-link {
+  padding-left: 4px !important;
+}
+.scrollable-cell {
+  max-height: 20px !important;
+  max-width: 100px !important;
+  overflow-y: auto !important;
+  /* overflow-x: scroll !important; */
+  /* white-space: nowrap !important; */
+}
+.scrollable-input {
+  height: 40px; /* Set a specific height */
+}
+
+.special .ant-form-item-required {
+  color: var(--text-special) !important;
+}
+.ant-drawer-content-wrapper{
+  width: 240px !important;
+}

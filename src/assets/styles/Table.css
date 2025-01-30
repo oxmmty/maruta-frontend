@@ -1,0 +1,53 @@
+.dark #specialTable {
+  scrollbar-color: rgba(175, 182, 193, 0.25) rgba(161, 191, 250, 0.17);
+}
+
+#specialTable {
+  scrollbar-color: rgba(91, 92, 95, 0.25) rgba(5, 5, 5, 0.06);
+}
+
+#specialTable table {
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+#specialTable table * {
+  border: 1px var(--border-100) solid;
+  padding: 15px 5px;
+}
+
+.dark #specialTable th {
+  background-color: #272B37;
+}
+
+#specialTable th {
+  background-color: #FCFCFC;
+}
+
+.dark #specialTable td {
+  background-color: #212531;
+}
+
+#specialTable td {
+  background-color: #FFFFFF;
+}
+
+
+
+
+
+:where(.css-dev-only-do-not-override-1vitxd2).ant-table-wrapper .ant-table-cell, :where(.css-dev-only-do-not-override-1vitxd2).ant-table-wrapper .ant-table-thead>tr>th, :where(.css-dev-only-do-not-override-1vitxd2).ant-table-wrapper .ant-table-tbody>tr>th, :where(.css-dev-only-do-not-override-1vitxd2).ant-table-wrapper .ant-table-tbody>tr>td, :where(.css-dev-only-do-not-override-1vitxd2).ant-table-wrapper tfoot>tr>th, :where(.css-dev-only-do-not-override-1vitxd2).ant-table-wrapper tfoot>tr>td{
+  padding: 10px 12px;
+}
+
+
+.PLtable :where(.css-dev-only-do-not-override-1vitxd2).ant-form-item{
+  margin: 0px !important;
+}
+.PLtable input{
+  /* border: 1px solid var(--border-100) !important; */
+  border: 1px solid black !important;
+  border-radius: 5px !important;
+  width: 50px !important;
+}
