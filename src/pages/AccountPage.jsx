@@ -12,7 +12,6 @@ const EditableCell = ({
   children,
   ...restProps
 }) => {
-  
 
   return (
     <td {...restProps} className="scrollable-cell">
