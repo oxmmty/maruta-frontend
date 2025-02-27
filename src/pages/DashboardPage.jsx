@@ -29,13 +29,13 @@ const Dashboardpage = () => {
           axios.get(process.env.REACT_API_BASE_URL + `/order`),
           axios.get(process.env.REACT_API_BASE_URL + `/pdfList`),
         ]);
-
         const totalSale = await axios.get(
           process.env.REACT_API_BASE_URL + `/order-total-sale`
         );
         const totalProfit = await axios.get(
           process.env.REACT_API_BASE_URL + `/order-total-profit`
         );
+        console.log("totalProfit" ,totalProfit.data.totalProfit)
 
         const combinedData = totalProfit.data.totalProfit.map((profit) => {
           const matchingSale = totalSale.data.totalSale.find(
@@ -73,9 +73,6 @@ const Dashboardpage = () => {
             売上高総利益率: data.売上高総利益率,
           };
         });
-        console.log("newTotalRatio", newTotalRatio);
-
-
         setOrder(orders.data);
         setCustomer(customers.data);
         setCompany(companies.data);
@@ -88,24 +85,22 @@ const Dashboardpage = () => {
     };
     fetchData();
   }, []);
-  console.log("totalMonthlySale", totalMonthlySale);
 
   const companyList = company
     .filter((item) => item.仕入先 === true)
     .map((item) => item.企業名略称);
   const companyPrice = companyList.map((item) => {
     const matchedPdfItem = pdfList.find(
-      (pdfItem) => pdfItem.下払会社名 === item
+      (pdfItem) => pdfItem.下払会社名 === item,
     );
     return {
       Price: matchedPdfItem ? Number(matchedPdfItem.基本料金) : 0,
     };
   });
   const companyPriceList = companyPrice.map((item) => item.Price);
-
   const customerList = customer
     .filter((item) => item.得意先 === true)
-    .map((item) => item.企業名略称);
+    .map((item) => item.企業名略称);;
   const customerPrice = customerList.map((item) => {
     const matchedPdfItem = order.find((orderItem) => orderItem.顧客名 === item);
     return {
@@ -113,7 +108,7 @@ const Dashboardpage = () => {
         ? Number(
             matchedPdfItem.基本料金1 +
               matchedPdfItem.基本料金2 +
-              matchedPdfItem.基本料金3
+              matchedPdfItem.基本料金3,
           )
         : 0,
     };
@@ -124,7 +119,7 @@ const Dashboardpage = () => {
       const matchedPdfItem = pdfList.find(
         (pdfItem) =>
           pdfItem.下払会社名 === companyItem &&
-          dayjs(pdfItem.作成日).isBetween(startDate, endDate, null, "[]")
+          dayjs(pdfItem.作成日).isBetween(startDate, endDate, null, "[]"),
       );
 
       return {
@@ -133,7 +128,6 @@ const Dashboardpage = () => {
     });
   };
 
-  // Calculate prices based on selected date
   const startOfMonth = selectedDate.startOf("month");
   const endOfMonth = selectedDate.endOf("month");
   const lastYearStart = startOfMonth.subtract(1, "year");
@@ -141,7 +135,6 @@ const Dashboardpage = () => {
   const lastMonthStart = startOfMonth.subtract(1, "month");
   const lastMonthEnd = endOfMonth.subtract(1, "month");
 
-  // New date calculations
   const lastYearLastMonthStart = lastYearStart.subtract(1, "month");
   const lastYearLastMonthEnd = lastYearEnd.subtract(1, "month");
   const thisYearLastMonthStart = startOfMonth.subtract(1, "month");
@@ -149,12 +142,12 @@ const Dashboardpage = () => {
 
   const lastYearLastMonthPrice = calculatePrices(
     lastYearLastMonthStart,
-    lastYearLastMonthEnd
+    lastYearLastMonthEnd,
   );
   const lastYearThisMonthPrice = calculatePrices(lastYearStart, lastYearEnd);
   const thisYearLastMonthPrice = calculatePrices(
     thisYearLastMonthStart,
-    thisYearLastMonthEnd
+    thisYearLastMonthEnd,
   );
   const thisYearThisMonthPrice = calculatePrices(startOfMonth, endOfMonth);
 
@@ -252,30 +245,24 @@ const Dashboardpage = () => {
       setSelectedDate(date);
     }
   };
-
   const calculateTotalPricesForEachDay = () => {
     const today = dayjs().startOf("day");
 
-    // Get the last 7 days (including today)
     const last7Days = Array.from({ length: 7 }, (_, i) =>
-      today.subtract(i, "day")
+      today.subtract(i, "day"),
     );
 
-    // Create an array of objects where each object holds the date and total price for all companies
     return last7Days.map((date) => {
-      // For each day, sum up the prices for all companies
       const totalPriceForDay = companyList.reduce((total, companyItem) => {
         const matchedPdfItem = pdfList.find(
           (pdfItem) =>
             pdfItem.下払会社名 === companyItem &&
-            dayjs(pdfItem.updatedAt).isSame(date, "day")
+            dayjs(pdfItem.updatedAt).isSame(date, "day"),
         );
 
-        // Add the company's price to the total for that day
         return total + (matchedPdfItem ? Number(matchedPdfItem.基本料金) : 0);
       }, 0); // Initial total is 0
 
-      // Return the date and the total price for that day
       return {
         date: date.format("YYYY-MM-DD"),
         totalPrice: totalPriceForDay,
@@ -289,24 +276,19 @@ const Dashboardpage = () => {
     .sort((a, b) => new Date(a.date) - new Date(b.date)) // Sort by date descending
     .map((item) => item.totalPrice); // Extract totalPrice values
 
-  /////////////////
-
   const calculateTotalPricesForEachDays = () => {
     const today = dayjs().startOf("day");
 
-    // Get the last 7 days (including today)
     const last7Days = Array.from({ length: 7 }, (_, i) =>
-      today.subtract(i, "day")
+      today.subtract(i, "day"),
     );
 
-    // Create an array of objects where each object holds the date and total price for all companies
     return last7Days.map((date) => {
-      // For each day, sum up the prices for all companies
       const totalPriceForDay = customerList.reduce((total, customerItem) => {
         const matchedOrderItem = order.find(
           (orderItem) =>
             orderItem.顧客名 === customerItem &&
-            dayjs(orderItem.createdAt).isSame(date, "day")
+            dayjs(orderItem.createdAt).isSame(date, "day"),
         );
 
         // Add the company's price to the total for that day
@@ -316,7 +298,7 @@ const Dashboardpage = () => {
             ? Number(
                 matchedOrderItem.基本料金1 +
                   matchedOrderItem.基本料金2 +
-                  matchedOrderItem.基本料金3
+                  matchedOrderItem.基本料金3,
               )
             : 0)
         );
@@ -337,7 +319,6 @@ const Dashboardpage = () => {
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .map((item) => item.totalPrice);
 
-  /////////////////
   return (
     <div className="flex flex-col xl:flex-col w-full gap-2">
       <div className="flex-col xl:h-96 xl:flex-row flex gap-2">

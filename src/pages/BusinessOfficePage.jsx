@@ -1,13 +1,4 @@
-import {
-  Table,
-  Button,
-  Form,
-  Input,
-  Select,
-  Popconfirm,
-  notification,
-  Modal,
-} from "antd";
+import { Button, Form, Input, Popconfirm, notification, Modal } from "antd";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import CTable from "src/components/CTable";
@@ -16,7 +7,7 @@ const EditableCell = ({
   editing,
   dataIndex,
   title,
-  inputtype,
+  inputType,
   record,
   workStations, // Add workStations prop here
   index,
@@ -102,7 +93,6 @@ const BusinessOffice = () => {
         });
       }
 
-      // Reload the data after successful update
       await loadData();
     } catch (errInfo) {
       notification.error({
@@ -122,7 +112,6 @@ const BusinessOffice = () => {
         description: `事業所 has been successfully deleted.`,
       });
 
-      // Reload the data after successful delete
       await loadData();
     } catch (error) {
       notification.error({
@@ -148,7 +137,6 @@ const BusinessOffice = () => {
       });
       setIsModalVisible(false);
 
-      // Reload the data after successful add
       await loadData();
     } catch (error) {
       notification.error({
@@ -243,7 +231,7 @@ const BusinessOffice = () => {
       ...col,
       onCell: (record) => ({
         record,
-        inputtype: col.dataIndex === "text",
+        inputType: col.dataIndex === "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),
@@ -258,7 +246,7 @@ const BusinessOffice = () => {
           type="primary"
           onClick={showAddModal}
           style={{ marginBottom: 16 }}>
-          Add 事業所
+          事業所を追加
         </Button>
       )}
       <Form form={form} component={false}>
@@ -273,14 +261,13 @@ const BusinessOffice = () => {
           dataSource={datas}
           columns={mergedColumns}
           rowClassName="editable-row"
-          // pagination={{ pageSize: 20 }}
           ps={10}
         />
       </Form>
 
       {/* Add User Modal */}
       <Modal
-        title="Add 事業所"
+        title="事業所を追加"
         visible={isModalVisible}
         onCancel={handleCancel}
         footer={null}>
@@ -321,7 +308,7 @@ const BusinessOffice = () => {
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
-              Add 事業所
+            事業所を追加
             </Button>
           </Form.Item>
         </Form>

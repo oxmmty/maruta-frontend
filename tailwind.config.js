@@ -14,6 +14,7 @@ export default {
         "bg-dark": "var(--bg-dark)",
         "base-500": "var(--base-500)",
         "base-600": "var(--base-600)",
+        "base-300":"var(--base-300)",
         "base-700": "var(--base-700)",
         "base-800": "var(--base-800)",
         "base-900": "var(--base-900)",

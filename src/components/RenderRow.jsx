@@ -1,0 +1,21 @@
+{data.配達先1 && renderRow(data, '基本料金1', 課税1, price1, index)}
+                      {data.CRU変更料金1 && renderRow(data, 'CRU変更料金1', CRU課税1, CRUPrice1, index)}
+                      {data["3軸料金1"] && renderRow(data, '3軸料金1', 軸課税1, angle1, index)}
+                      {data.高速費 && renderRow(data, '高速費', 高速費課税, 高速費Price, index)}
+                      {data.スケール費 && renderRow(data, 'スケール費', スケール費課税1, スケール費Price, index)}
+                      {data.シャーシ留置費 && renderRow(data, 'シャーシ留置費', シャーシ留置費課税1, シャーシ留置費Price, index)}
+                      {data.その他費用 && renderRow(data, 'その他費用', その他課税, その他費用Price, index)}
+                      {data.配達先2 && renderRow(data, '基本料金2', 課税2, price2, index)}
+                      {data.CRU変更料金2 && renderRow(data, 'CRU変更料金2', CRU課税2, CRUPrice2, index)}
+                      {data["3軸料金2"] && renderRow(data, '3軸料金2', 軸課税2, angle2, index)}
+                      {data.高速費2 && renderRow(data, '高速費2', 高速費課税2, 高速費Price2, index)}
+                      {data.スケール費2 && renderRow(data, 'スケール費2', スケール費課税2, スケール費Price2, index)}
+                      {data.シャーシ留置費2 && renderRow(data, 'シャーシ留置費2', シャーシ留置費課税2, シャーシ留置費Price2, index)}
+                      {data.その他費用2 && renderRow(data, 'その他費用2', その他課税2, その他費用Price2, index)}
+                      {data.配達先3 && renderRow(data, '基本料金3', 課税3, price3, index)}
+                      {data.CRU変更料金3 && renderRow(data, 'CRU変更料金3', CRU課税3, CRUPrice3, index)}
+                      {data["3軸料金3"] && renderRow(data, '3軸料金3', 軸課税3, angle3, index)}
+                      {data.高速費3 && renderRow(data, '高速費3', 高速費課税3, 高速費Price3, index)}
+                      {data.スケール費3 && renderRow(data, 'スケール費3', スケール費課税3, スケール費Price3, index)}
+                      {data.シャーシ留置費3 && renderRow(data, 'シャーシ留置費3', シャーシ留置費課税3, シャーシ留置費Price3, index)}
+                      {data.その他費用3 && renderRow(data, 'その他費用3', その他課税3, その他費用Price3, index)}

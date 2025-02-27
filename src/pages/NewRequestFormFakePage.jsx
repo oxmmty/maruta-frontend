@@ -13,22 +13,18 @@ const formatNumber = (num) => {
   return parseInt(num).toLocaleString("ja-JP");
 };
 
-const NewRequestFormPage = () => {
+const NewRequestFormPageFake = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { data } = location.state || {};
   const req = location.state.req;
-
-  console.log(req);
-  console.log(data);
-
   const componentRef = useRef();
 
   const handleDownloadPDF = () => {
     axios
       .put("/pdfList", {
         リクエスト番号: data[0].リクエスト番号,
-        type: 1,
+        type: 0,
       })
       .then((response) => {
         console.log("Database updated successfully", response);
@@ -263,7 +259,6 @@ const NewRequestFormPage = () => {
       </div>
     </div>
   );
-
 };
 
-export default NewRequestFormPage;
+export default NewRequestFormPageFake;

@@ -19,20 +19,15 @@ const LoginPage = () => {
     navigate("/dashboard");
   };
   return (
-    <div className="w-full  flex justify-center items-center p-2 bg-[url('./back3.png')] bg-cover bg-center h-screen">
+    <div className="w-full  flex justify-center items-center p-2 bg-[url('./background.webp')] bg-cover bg-center h-screen">
       <Form
         className="lg:w-full w-full flex-col h-full flex lg:flex-row lg:h-3/6 lg:border lg:border-[#707070] lg:max-w-[1000px]  lg:rounded-2xl lg:bg-[#00000070] "
         layout="vertical"
-        // initialValues={{
-        //   email: "Admin@gmail.com",
-        //   password: "123456",
-        //   remember: true,
-        // }}
         onFinish={onFinish}>
         <div className=" lg:bg-[#00000040] h-[30vh] w-full lg:h-full lg:w-1/2  lg:rounded-2xl lg:border lg:border-[#707070]">
           <div className="flex items-center justify-center h-full">
             <Image
-              src="/logo.gif"
+              src="./assets/logo.webp"
               width={120}
               preview={true}
               className="m-auto"

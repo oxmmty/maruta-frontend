@@ -85,7 +85,7 @@ const Header = ({ items, ...props }) => {
           <button
             className="flex-none px-4"
             onClick={() => navigate("/dashboard")}>
-            <Image src="/logo.gif" width={40} preview={false} />
+            <Image src="/assets/logo.webp" width={40} preview={false} />
           </button>
         </div>
         <Navbar
@@ -97,10 +97,10 @@ const Header = ({ items, ...props }) => {
           {/* <Badge count={5} color="hsl(102, 70%, 61%)">
             <Button shape="circle" icon={<BellOutlined />} />
           </Badge> */}
-          <Button
+          {/* <Button
             shape="circle"
-            icon={<Image src="/language.png" preview={false} />}
-          />
+            icon={<Image src="/assets/language.webp" preview={false} />}
+          /> */}
           <Button
             shape="circle"
             icon={theme === "light" ? <SunOutlined /> : <MoonOutlined />}
@@ -108,7 +108,7 @@ const Header = ({ items, ...props }) => {
           />
           <LogoMenu>
             <Button
-              icon={<Avatar src={"/user/man.png"} />}
+              icon={<Avatar src={"/assets/man.webp"} />}
               className="rounded-full"
             />
           </LogoMenu>
@@ -120,13 +120,13 @@ const Header = ({ items, ...props }) => {
               <button
                 className="flex-none px-4"
                 onClick={() => navigate("/dashboard")}>
-                <Image src="/logo.png" width={40} preview={false} />
+                <Image src="/logo.webp" width={40} preview={false} />
               </button>
             }
             onClose={onClose}
             open={openSide}
             placement={"left"}
-            className="w-[240px] lg:inline-block !important ">
+            className="w-[200px] lg:inline-block !important ">
             <div className="flex flex-col gap-2 w-full">
               {items[location.pathname.split("/")[1]].map((item, index) => (
                 <div
@@ -159,7 +159,7 @@ const Header = ({ items, ...props }) => {
               <button
                 className="flex-none px-4"
                 onClick={() => navigate("/dashboard")}>
-                <Image src="/logo.png" width={40} preview={false} />
+                <Image src="/logo.webp" width={40} preview={false} />
               </button>
             }
             onClose={onClose}

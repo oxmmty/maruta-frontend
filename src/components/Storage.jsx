@@ -248,6 +248,7 @@ const Storage = ({ setStorageData, editData }, { className = "" }) => {
             </Form.Item>
             <Radio.Group
               value={shipperStorageTax}
+              defaultValue={true}
               onChange={(e) => setShipperStorageTax(e.target.value)}>
               <div className="flex flex-col">
                 <Radio value={true}>課税</Radio>
@@ -283,6 +284,7 @@ const Storage = ({ setStorageData, editData }, { className = "" }) => {
             </Form.Item>
             <Radio.Group
               value={subTax}
+              defaultValue={true}
               onChange={(e) => setSubTax(e.target.value)}>
               <div className="flex flex-col">
                 <Radio value={true}>課税</Radio>

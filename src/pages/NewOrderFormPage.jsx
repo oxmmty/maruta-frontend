@@ -18,6 +18,7 @@ import SubcontractPayment from "src/components/SubcontractPayment";
 import Storage from "src/components/Storage";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import Loading from "src/components/Loading";
 
 const { TextArea } = Input;
 const dateFormat = "YYYY-MM-DD";
@@ -52,12 +53,10 @@ const SeaComponent = ({ setData, title1 }) => {
       setType(res.data.コンテナタイプ || "");
       setSize(res.data.コンテナサイズ || "");
       setKinds(res.data.コンテナ種類 || "");
-      setSpecies(res.data.輸入種類 || "");
-      setAngle(res.data.軸3 || false);
+      setAngle(res.data["3軸数"] || false);
       setRisk(res.data.危険品 || false);
       setBk(res.data.BKNo || "");
       setBl(res.data.BLNo || "");
-      setSummary(res.data.摘要 || "");
       setShipName(res.data.船名 || "");
       setInvoiceRemark(res.data.送り状受領書備考 || "");
       setRequestRemark(res.data.請求書備考 || "");
@@ -80,7 +79,7 @@ const SeaComponent = ({ setData, title1 }) => {
   const [subPayData6, setSubPayData6] = useState([]);
   const [storageData, setStorageData] = useState([]);
   const [date, setDate] = useState();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [customerData, setCustomerData] = useState([]);
   const [filteredCustomerData, setFilteredCustomerData] = useState([]);
@@ -124,15 +123,15 @@ const SeaComponent = ({ setData, title1 }) => {
   const [size, setSize] = useState(null);
   const [type, setType] = useState(null);
   const [kinds, setKinds] = useState(null);
-  const [species, setSpecies] = useState(null);
   const [bk, setBk] = useState(null);
   const [bl, setBl] = useState(null);
-
   const [shipName, setShipName] = useState(null);
   const [code, setCode] = useState(null);
   const [requestRemark, setRequestRemark] = useState(null);
   const [invoiceRemark, setInvoiceRemark] = useState(null);
+  const [taxData, setTaxData] = useState([]);
   const lastDay = dayjs(date).endOf("month").format("YYYY-MM-DD");
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -156,8 +155,7 @@ const SeaComponent = ({ setData, title1 }) => {
       コンテナタイプ: type,
       コンテナサイズ: size,
       コンテナ種類: kinds,
-      輸入種類: species,
-      軸3: angle,
+      "3軸数": angle,
       危険品: risk,
       BKNo: bk,
       BLNo: bl,
@@ -228,6 +226,7 @@ const SeaComponent = ({ setData, title1 }) => {
       下払会社名1: subPayData1[0],
       下払料金1: subPayData1[1],
       下払課税1: subPayData1[2],
+
       下払自車F1: subPayData1[4],
       下払自車S1: subPayData1[6],
       自社車番F1: subPayData1[7],
@@ -339,6 +338,24 @@ const SeaComponent = ({ setData, title1 }) => {
       請求書備考: requestRemark,
       送り状受領書備考: invoiceRemark,
       支払い確認: false,
+      下払い3軸1: subPayData1[17],
+      下払い3軸課税1: subPayData1[18],
+      下払い3軸2: subPayData2[17],
+      下払い3軸課税2: subPayData2[18],
+      下払い3軸3: subPayData3[17],
+      下払い3軸課税3: subPayData3[18],
+      下払い3軸4: subPayData4[17],
+      下払い3軸課税4: subPayData4[18],
+      下払い3軸5: subPayData5[17],
+      下払い3軸課税5: subPayData5[18],
+      下払い3軸6: subPayData6[17],
+      下払い3軸課税6: subPayData6[18],
+      車種1: subPayData1[3],
+      車種2: subPayData2[3],
+      車種3: subPayData3[3],
+      車種4: subPayData4[3],
+      車種5: subPayData5[3],
+      車種6: subPayData6[3],
     });
   }, [
     lastDay,
@@ -359,7 +376,6 @@ const SeaComponent = ({ setData, title1 }) => {
     type,
     size,
     kinds,
-    species,
     angle,
     risk,
     bk,
@@ -553,6 +569,18 @@ const SeaComponent = ({ setData, title1 }) => {
     storageData[10],
     requestRemark,
     invoiceRemark,
+    subPayData1[17],
+    subPayData1[18],
+    subPayData2[17],
+    subPayData2[18],
+    subPayData3[17],
+    subPayData3[18],
+    subPayData4[17],
+    subPayData4[18],
+    subPayData5[17],
+    subPayData5[18],
+    subPayData6[17],
+    subPayData6[18],
   ]);
   useEffect(() => {
     customerFilterOptions();
@@ -572,8 +600,27 @@ const SeaComponent = ({ setData, title1 }) => {
   useEffect(() => {
     loadFilterOptions();
   }, [inputValueLoad, loadData]);
-
+  useEffect(() => {
+    setTaxData([
+      deliveryData1[8],
+      deliveryData1[10],
+      deliveryData1[12],
+      deliveryData1[15],
+      deliveryData1[17],
+      deliveryData1[19],
+    ]);
+  }, [
+    [
+      deliveryData1[8],
+      deliveryData1[10],
+      deliveryData1[12],
+      deliveryData1[15],
+      deliveryData1[17],
+      deliveryData1[19],
+    ],
+  ]);
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [customers, ships, shippers, workstations] = await Promise.all([
         axios.get(process.env.REACT_API_BASE_URL + `/partnercompany`),
@@ -589,7 +636,7 @@ const SeaComponent = ({ setData, title1 }) => {
       setFilteredCustomerData(customer);
       setCompanyData(customer);
       setFilteredCompanyData(customer);
-
+console.log("customer", customer)
       const ship = ships.data
         .sort((a, b) => b.カウント - a.カウント)
         .map((item) => item.船社名称);
@@ -631,7 +678,6 @@ const SeaComponent = ({ setData, title1 }) => {
   const typeData = [86, 96];
   const sizeData = [20, 40];
   const kindsData = ["Dry", "TNK", "REEFER", "FRAT"];
-  const speciesData = ["横浜揚", "ｼﾝｸﾛｼﾞ", "輸出", "輸入"];
   const customerFilterOptions = () => {
     if (!inputValueCustomer.trim()) {
       setFilteredCustomerData(customerData);
@@ -694,7 +740,6 @@ const SeaComponent = ({ setData, title1 }) => {
   const customerHandleSearch = (newInputValue) => {
     setInputValueCustomer(newInputValue);
   };
-
   const companyFilterOptions = () => {
     if (!inputValueCompany.trim()) {
       setFilteredCompanyData(companyData);
@@ -736,7 +781,7 @@ const SeaComponent = ({ setData, title1 }) => {
         const response = await axios.post(
           process.env.REACT_API_BASE_URL + "/partnercompany",
           {
-            企業名略称: inputValueCompany,
+            顧客名称: inputValueCompany,
           }
         );
         const newOption = { value: inputValueCompany };
@@ -755,7 +800,6 @@ const SeaComponent = ({ setData, title1 }) => {
   const companyHandleSearch = (newInputValue) => {
     setInputValueCompany(newInputValue);
   };
-
   const locationFilterOptions = () => {
     if (!inputValueLocation.trim()) {
       setFilteredLocationData(locationData);
@@ -819,7 +863,6 @@ const SeaComponent = ({ setData, title1 }) => {
   const locationHandleSearch = (newInputValue) => {
     setInputValueLocation(newInputValue);
   };
-
   const shipperFilterOptions = () => {
     if (!inputValueShipper.trim()) {
       setFilteredShipperData(shipperData);
@@ -880,7 +923,6 @@ const SeaComponent = ({ setData, title1 }) => {
   const shipperHandleSearch = (newInputValue) => {
     setInputValueShipper(newInputValue);
   };
-
   const shipFilterOptions = () => {
     if (!inputValueShip.trim()) {
       setFilteredShipData(shipData);
@@ -941,7 +983,6 @@ const SeaComponent = ({ setData, title1 }) => {
   const shipHandleSearch = (newInputValue) => {
     setInputValueShip(newInputValue);
   };
-
   const loadFilterOptions = () => {
     if (!inputValueLoad.trim()) {
       setFilteredLoadData(loadData);
@@ -1003,13 +1044,12 @@ const SeaComponent = ({ setData, title1 }) => {
   const loadHandleSearch = (newInputValue) => {
     setInputValueLoad(newInputValue);
   };
-
   const handleSelectDivide = (value) => {
     setSelectedValueDivide(value);
   };
   const handleCheckboxChange = (e) => {
     setIsChecked(e.target.checked);
-    setSelectedValueDivide(null);
+    // setSelectedValueDivide(null);
   };
   const checkPick = () => {
     if (pick !== true) {
@@ -1107,7 +1147,7 @@ const SeaComponent = ({ setData, title1 }) => {
               style={{ width: 200 }}
               filterOption={false}
               notFoundContent={null}
-              disabled={isChecked}
+              // disabled={isChecked}
               className="grow"
             >
               {distinguish.length > 0 ? (
@@ -1125,32 +1165,18 @@ const SeaComponent = ({ setData, title1 }) => {
             </Checkbox>
           </div>
         </Form.Item>
-        <Form.Item label={"輸入種類"}>
-          <div className="flex flex-wrap flex-row items-center gap-4">
-            <Select
-              value={species}
-              onChange={(value) => setSpecies(value)}
-              style={{ width: 200 }}
-              className="grow"
-            >
-              {speciesData.map((data) => (
-                <Option key={data} value={data}>
-                  {data}
-                </Option>
-              ))}
-            </Select>
-          </div>
-        </Form.Item>
         <Form.Item label={"荷主名"}>
           <div className="flex flex-wrap flex-row items-center gap-4">
             <Select
               showSearch
               value={selectedValueShipper}
               defaultActiveFirstOption={false}
+              showArrow={false}
               filterOption={false}
               onSearch={shipperHandleSearch}
               onChange={shipperHandleChange}
-              notFoundContent={loading ? "Loading..." : "No match found"}
+              notFoundContent={loading ? <Loading /> : "Not found data"}
+              loading={loading}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   shipperHandleAddNewOption();
@@ -1172,10 +1198,12 @@ const SeaComponent = ({ setData, title1 }) => {
               showSearch
               value={selectedValueCustomer}
               defaultActiveFirstOption={false}
+              showArrow={false}
               filterOption={false}
               onSearch={customerHandleSearch}
               onChange={customerHandleChange}
-              notFoundContent={loading ? "Loading..." : "No match found"}
+              notFoundContent={loading ? <Loading /> : "Not found data"}
+              loading={loading}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   customerHandleAddNewOption();
@@ -1197,10 +1225,12 @@ const SeaComponent = ({ setData, title1 }) => {
               showSearch
               value={selectedValueCompany}
               defaultActiveFirstOption={false}
+              showArrow={false}
               filterOption={false}
               onSearch={companyHandleSearch}
               onChange={companyHandleChange}
-              notFoundContent={loading ? "Loading..." : "No match found"}
+              notFoundContent={loading ? <Loading /> : "Not found data"}
+              loading={loading}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   companyHandleAddNewOption();
@@ -1222,10 +1252,12 @@ const SeaComponent = ({ setData, title1 }) => {
               showSearch
               value={selectedValueLocation}
               defaultActiveFirstOption={false}
+              showArrow={false}
               filterOption={false}
               onSearch={locationHandleSearch}
               onChange={locationHandleChange}
-              notFoundContent={loading ? "Loading..." : "No match found"}
+              notFoundContent={loading ? <Loading /> : "Not found data"}
+              loading={loading}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   locationHandleAddNewOption();
@@ -1247,10 +1279,12 @@ const SeaComponent = ({ setData, title1 }) => {
               showSearch
               value={selectedValueLoad}
               defaultActiveFirstOption={false}
+              showArrow={false}
               filterOption={false}
               onSearch={loadHandleSearch}
               onChange={loadHandleChange}
-              notFoundContent={loading ? "Loading..." : "No match found"}
+              notFoundContent={loading ? <Loading /> : "Not found data"}
+              loading={loading}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   loadHandleAddNewOption();
@@ -1272,10 +1306,12 @@ const SeaComponent = ({ setData, title1 }) => {
               showSearch
               value={selectedValueShip}
               defaultActiveFirstOption={false}
+              showArrow={false}
               filterOption={false}
               onSearch={shipHandleSearch}
               onChange={shipHandleChange}
-              notFoundContent={loading ? "Loading..." : "No match found"}
+              notFoundContent={loading ? <Loading /> : "Not found data"}
+              loading={loading}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   shipHandleAddNewOption();
@@ -1370,9 +1406,6 @@ const SeaComponent = ({ setData, title1 }) => {
             <Form.Item label={"船名"} className="w-10 grow">
               <Input onChange={(e) => setShipName(e.target.value)} />
             </Form.Item>
-            <Form.Item label={"摘要"} className="w-10 grow">
-              <Input onChange={(e) => setSummary(e.target.value)} />
-            </Form.Item>
           </div>
         </Form.Item>
         {selectedValueDivide == "空バン在庫" &&
@@ -1386,6 +1419,7 @@ const SeaComponent = ({ setData, title1 }) => {
               setDeliveryData2={setDeliveryData2}
               setDeliveryData3={setDeliveryData3}
               editData={editData}
+              taxData={taxData}
             />
           </div>
         )}
@@ -1407,6 +1441,7 @@ const SeaComponent = ({ setData, title1 }) => {
               setSubPayData5={setSubPayData5}
               setSubPayData6={setSubPayData6}
               editData={editData}
+              taxData={taxData}
             />
           </div>
         ) : (
@@ -1470,10 +1505,30 @@ const OtherComponent = () => {
   return <div className="h-[500px] overflow-y-auto">3</div>;
 };
 
-const NewOrderFormPage = ({ title, start }) => {
+const NewOrderFormPage = ({ title, start, delFlag, setDelFlag, setModal }) => {
   const navigate = useNavigate();
   const tabNames = ["海上コンテナ", "トラック", "その他"];
   const [data, setData] = useState();
+  const [pdfData, setPdfData] = useState([]);
+
+  useEffect(() => {
+    if (title) {
+      const a = title.replace(/^MA/, "HA");
+      fetchPdfListData(a);
+    }
+  }, [title]);
+
+  const fetchPdfListData = async (aID) => {
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_API_BASE_URL}/pdfList/${aID}`
+      );
+      setPdfData(res.data);
+    } catch (error) {
+      console.error("Error fetching order data:", error);
+      message.error("Failed to fetch order data");
+    }
+  };
 
   const dialogComponent = [
     <SeaComponent setData={setData} title1={title} />,
@@ -1490,29 +1545,32 @@ const NewOrderFormPage = ({ title, start }) => {
       2
     );
     const jsonObject = JSON.parse(jsonString);
+
     switch (jsonObject.区分) {
       case "実入り取り":
-        if (
-          jsonObject.顧客名 == "" ||
-          jsonObject.取場所 == "" ||
-          jsonObject.搬入返却場所 == "" ||
-          jsonObject.コンテナNo == "" ||
-          jsonObject.コンテナサイズ == "" ||
-          jsonObject.コンテナタイプ == "" ||
-          jsonObject.コンテナ種類 == "" ||
-          jsonObject.配達先1 == "" ||
-          jsonObject.配達日1 == "" ||
-          jsonObject.配達時間1 == "" ||
-          jsonObject.積日1 == "" ||
-          jsonObject.基本料金1 == "" ||
-          jsonObject.下払会社名1 == "" ||
-          jsonObject.下払料金1 == ""
-        ) {
-          notification.error({
-            message: "エラー",
-            description: "データを正確に入力してください。",
-          });
-        } else {
+        // if (!jsonObject.未定) {
+          if (
+            jsonObject.顧客名 == "" ||
+            jsonObject.取場所 == "" ||
+            jsonObject.搬入返却場所 == "" ||
+            // jsonObject.コンテナNo == "" ||
+            // jsonObject.コンテナサイズ == "" ||
+            // jsonObject.コンテナタイプ == "" ||
+            // jsonObject.コンテナ種類 == "" ||
+            jsonObject.配達先1 == "" ||
+            jsonObject.配達日1 == "" ||
+            jsonObject.配達時間1 == "" ||
+            jsonObject.積日1 == "" ||
+            jsonObject.基本料金1 == "" ||
+            jsonObject.下払会社名1 == "" ||
+            jsonObject.下払料金1 == ""
+          ) {
+            notification.error({
+              message: "エラー",
+              description: "データを正確に入力してください。",
+            });
+          // }
+        } else{
           try {
             if (title) {
               const res = await axios.put(
@@ -1522,11 +1580,19 @@ const NewOrderFormPage = ({ title, start }) => {
                   jsonObject,
                 }
               );
+              await axios.put(
+                process.env.REACT_API_BASE_URL +
+                  `/orderlist/edit/${"MA" + title.slice(2)}`,
+                {
+                  jsonObject,
+                }
+              );
               if (res) {
                 notification.success({
                   message: "成功",
                   description: "更新しました。",
                 });
+                setModal(false);
               }
             } else {
               const res = await axios.post(
@@ -1548,26 +1614,28 @@ const NewOrderFormPage = ({ title, start }) => {
         }
         break;
       case "空バン取り":
-        if (
-          jsonObject.顧客名 == "" ||
-          jsonObject.取場所 == "" ||
-          jsonObject.搬入返却場所 == "" ||
-          jsonObject.コンテナNo == "" ||
-          jsonObject.コンテナサイズ == "" ||
-          jsonObject.コンテナタイプ == "" ||
-          jsonObject.コンテナ種類 == "" ||
-          jsonObject.配達先1 == "" ||
-          jsonObject.配達日1 == "" ||
-          jsonObject.配達時間1 == "" ||
-          jsonObject.積日1 == "" ||
-          jsonObject.基本料金1 == "" ||
-          jsonObject.下払会社名1 == "" ||
-          jsonObject.下払料金1 == ""
-        ) {
-          return notification.error({
-            message: "エラー",
-            description: "データを正確に入力してください。",
-          });
+        // if (!jsonObject.未定) {
+          if (
+            jsonObject.顧客名 == "" ||
+            jsonObject.取場所 == "" ||
+            jsonObject.搬入返却場所 == "" ||
+            jsonObject.コンテナNo == "" ||
+            jsonObject.コンテナサイズ == "" ||
+            jsonObject.コンテナタイプ == "" ||
+            jsonObject.コンテナ種類 == "" ||
+            jsonObject.配達先1 == "" ||
+            jsonObject.配達日1 == "" ||
+            jsonObject.配達時間1 == "" ||
+            jsonObject.積日1 == "" ||
+            jsonObject.基本料金1 == "" ||
+            jsonObject.下払会社名1 == "" ||
+            jsonObject.下払料金1 == ""
+          ) {
+            return notification.error({
+              message: "エラー",
+              description: "データを正確に入力してください。",
+            });
+          // }
         } else {
           try {
             if (title) {
@@ -1636,36 +1704,38 @@ const NewOrderFormPage = ({ title, start }) => {
         }
         break;
       case "実入り取りFDR":
-        if (
-          jsonObject.顧客名 == "" ||
-          jsonObject.取場所 == "" ||
-          jsonObject.CRU顧客名 == "" ||
-          jsonObject.搬入返却場所 !== "FDR" ||
-          jsonObject.コンテナNo == "" ||
-          jsonObject.コンテナサイズ == "" ||
-          jsonObject.コンテナタイプ == "" ||
-          jsonObject.コンテナ種類 == "" ||
-          jsonObject.配達先1 == "" ||
-          jsonObject.配達日1 == "" ||
-          jsonObject.配達時間1 == "" ||
-          jsonObject.積日1 == "" ||
-          jsonObject.基本料金1 == "" ||
-          jsonObject.下払会社名1 == "" ||
-          jsonObject.下払料金1 == "" ||
-          jsonObject.保管場所 == "" ||
-          jsonObject.入庫日 == "" ||
-          jsonObject.出庫日 == "" ||
-          jsonObject.荷主保管料金1日 == "" ||
-          jsonObject.荷主保管料金リフトオフ == "" ||
-          jsonObject.荷主保管料金リフトオン == "" ||
-          jsonObject.下払保管料金1日 == "" ||
-          jsonObject.下払保管料金リフトオフ == "" ||
-          jsonObject.下払保管料金リフトオン == ""
-        ) {
-          notification.error({
-            message: "エラー",
-            description: "データを正確に入力してください。",
-          });
+        // if (!jsonObject.未定) {
+          if (
+            jsonObject.顧客名 == "" ||
+            jsonObject.取場所 == "" ||
+            jsonObject.CRU顧客名 == "" ||
+            jsonObject.搬入返却場所 !== "FDR" ||
+            jsonObject.コンテナNo == "" ||
+            jsonObject.コンテナサイズ == "" ||
+            jsonObject.コンテナタイプ == "" ||
+            jsonObject.コンテナ種類 == "" ||
+            jsonObject.配達先1 == "" ||
+            jsonObject.配達日1 == "" ||
+            jsonObject.配達時間1 == "" ||
+            jsonObject.積日1 == "" ||
+            jsonObject.基本料金1 == "" ||
+            jsonObject.下払会社名1 == "" ||
+            jsonObject.下払料金1 == "" ||
+            jsonObject.保管場所 == "" ||
+            jsonObject.入庫日 == "" ||
+            jsonObject.出庫日 == "" ||
+            jsonObject.荷主保管料金1日 == "" ||
+            jsonObject.荷主保管料金リフトオフ == "" ||
+            jsonObject.荷主保管料金リフトオン == "" ||
+            jsonObject.下払保管料金1日 == "" ||
+            jsonObject.下払保管料金リフトオフ == "" ||
+            jsonObject.下払保管料金リフトオン == ""
+          ) {
+            notification.error({
+              message: "エラー",
+              description: "データを正確に入力してください。",
+            });
+          // }
         } else {
           try {
             if (title) {
@@ -1690,26 +1760,28 @@ const NewOrderFormPage = ({ title, start }) => {
         }
         break;
       case "実入り取りPIC":
-        if (
-          jsonObject.顧客名 == "" ||
-          jsonObject.取場所 == "" ||
-          jsonObject.搬入返却場所 == "" ||
-          jsonObject.コンテナNo == "" ||
-          jsonObject.コンテナサイズ == "" ||
-          jsonObject.コンテナタイプ == "" ||
-          jsonObject.コンテナ種類 == "" ||
-          jsonObject.配達先1 == "" ||
-          jsonObject.配達日1 == "" ||
-          jsonObject.配達時間1 == "" ||
-          jsonObject.積日1 == "" ||
-          jsonObject.基本料金1 == "" ||
-          jsonObject.下払会社名1 == "" ||
-          jsonObject.下払料金1 == ""
-        ) {
-          notification.error({
-            message: "エラー",
-            description: "データを正確に入力してください。",
-          });
+        // if (!jsonObject.未定) {
+          if (
+            jsonObject.顧客名 == "" ||
+            jsonObject.取場所 == "" ||
+            jsonObject.搬入返却場所 == "" ||
+            jsonObject.コンテナNo == "" ||
+            jsonObject.コンテナサイズ == "" ||
+            jsonObject.コンテナタイプ == "" ||
+            jsonObject.コンテナ種類 == "" ||
+            jsonObject.配達先1 == "" ||
+            jsonObject.配達日1 == "" ||
+            jsonObject.配達時間1 == "" ||
+            jsonObject.積日1 == "" ||
+            jsonObject.基本料金1 == "" ||
+            jsonObject.下払会社名1 == "" ||
+            jsonObject.下払料金1 == ""
+          ) {
+            notification.error({
+              message: "エラー",
+              description: "データを正確に入力してください。",
+            });
+          // }
         } else {
           try {
             if (title) {
@@ -1734,28 +1806,30 @@ const NewOrderFormPage = ({ title, start }) => {
         }
         break;
       case "保管":
-        if (
-          jsonObject.顧客名 == "" ||
-          jsonObject.取場所 == "" ||
-          jsonObject.搬入返却場所 !== "FDR" ||
-          jsonObject.コンテナNo == "" ||
-          jsonObject.コンテナサイズ == "" ||
-          jsonObject.コンテナタイプ == "" ||
-          jsonObject.コンテナ種類 == "" ||
-          jsonObject.保管場所 == "" ||
-          jsonObject.入庫日 == "" ||
-          jsonObject.出庫日 == "" ||
-          jsonObject.荷主保管料金1日 == "" ||
-          jsonObject.荷主保管料金リフトオフ == "" ||
-          jsonObject.荷主保管料金リフトオン == "" ||
-          jsonObject.下払保管料金1日 == "" ||
-          jsonObject.下払保管料金リフトオフ == "" ||
-          jsonObject.下払保管料金リフトオン == ""
-        ) {
-          notification.error({
-            message: "エラー",
-            description: "データを正確に入力してください。",
-          });
+        // if (!jsonObject.未定) {
+          if (
+            jsonObject.顧客名 == "" ||
+            jsonObject.取場所 == "" ||
+            jsonObject.搬入返却場所 !== "FDR" ||
+            jsonObject.コンテナNo == "" ||
+            jsonObject.コンテナサイズ == "" ||
+            jsonObject.コンテナタイプ == "" ||
+            jsonObject.コンテナ種類 == "" ||
+            jsonObject.保管場所 == "" ||
+            jsonObject.入庫日 == "" ||
+            jsonObject.出庫日 == "" ||
+            jsonObject.荷主保管料金1日 == "" ||
+            jsonObject.荷主保管料金リフトオフ == "" ||
+            jsonObject.荷主保管料金リフトオン == "" ||
+            jsonObject.下払保管料金1日 == "" ||
+            jsonObject.下払保管料金リフトオフ == "" ||
+            jsonObject.下払保管料金リフトオン == ""
+          ) {
+            notification.error({
+              message: "エラー",
+              description: "データを正確に入力してください。",
+            });
+          // }
         } else {
           try {
             if (title) {
@@ -1780,28 +1854,30 @@ const NewOrderFormPage = ({ title, start }) => {
         }
         break;
       case "空バン在庫":
-        if (
-          jsonObject.顧客名 == "" ||
-          jsonObject.取場所 == "" ||
-          jsonObject.搬入返却場所 == "" ||
-          jsonObject.コンテナNo == "" ||
-          jsonObject.コンテナサイズ == "" ||
-          jsonObject.コンテナタイプ == "" ||
-          jsonObject.コンテナ種類 == "" ||
-          jsonObject.保管場所 == "" ||
-          jsonObject.入庫日 == "" ||
-          jsonObject.出庫日 == "" ||
-          jsonObject.荷主保管料金1日 == "" ||
-          jsonObject.荷主保管料金リフトオフ == "" ||
-          jsonObject.荷主保管料金リフトオン == "" ||
-          jsonObject.下払保管料金1日 == "" ||
-          jsonObject.下払保管料金リフトオフ == "" ||
-          jsonObject.下払保管料金リフトオン == ""
-        ) {
-          notification.error({
-            message: "エラー",
-            description: "データを正確に入力してください。",
-          });
+        // if (!jsonObject.未定) {
+          if (
+            jsonObject.顧客名 == "" ||
+            jsonObject.取場所 == "" ||
+            jsonObject.搬入返却場所 == "" ||
+            jsonObject.コンテナNo == "" ||
+            jsonObject.コンテナサイズ == "" ||
+            jsonObject.コンテナタイプ == "" ||
+            jsonObject.コンテナ種類 == "" ||
+            jsonObject.保管場所 == "" ||
+            jsonObject.入庫日 == "" ||
+            jsonObject.出庫日 == "" ||
+            jsonObject.荷主保管料金1日 == "" ||
+            jsonObject.荷主保管料金リフトオフ == "" ||
+            jsonObject.荷主保管料金リフトオン == "" ||
+            jsonObject.下払保管料金1日 == "" ||
+            jsonObject.下払保管料金リフトオフ == "" ||
+            jsonObject.下払保管料金リフトオン == ""
+          ) {
+            notification.error({
+              message: "エラー",
+              description: "データを正確に入力してください。",
+            });
+          // }
         } else {
           try {
             if (title) {
@@ -1826,28 +1902,30 @@ const NewOrderFormPage = ({ title, start }) => {
         }
         break;
       case "船社請求":
-        if (
-          jsonObject.顧客名 == "" ||
-          jsonObject.取場所 == "" ||
-          jsonObject.搬入返却場所 == "" ||
-          jsonObject.コンテナNo == "" ||
-          jsonObject.コンテナサイズ == "" ||
-          jsonObject.コンテナタイプ == "" ||
-          jsonObject.コンテナ種類 == "" ||
-          jsonObject.保管場所 == "" ||
-          jsonObject.入庫日 == "" ||
-          jsonObject.出庫日 == "" ||
-          jsonObject.荷主保管料金1日 == "" ||
-          jsonObject.荷主保管料金リフトオフ == "" ||
-          jsonObject.荷主保管料金リフトオン == "" ||
-          jsonObject.下払保管料金1日 == "" ||
-          jsonObject.下払保管料金リフトオフ == "" ||
-          jsonObject.下払保管料金リフトオン == ""
-        ) {
-          notification.error({
-            message: "エラー",
-            description: "データを正確に入力してください。",
-          });
+        // if (!jsonObject.未定) {
+          if (
+            jsonObject.顧客名 == "" ||
+            jsonObject.取場所 == "" ||
+            jsonObject.搬入返却場所 == "" ||
+            jsonObject.コンテナNo == "" ||
+            jsonObject.コンテナサイズ == "" ||
+            jsonObject.コンテナタイプ == "" ||
+            jsonObject.コンテナ種類 == "" ||
+            jsonObject.保管場所 == "" ||
+            jsonObject.入庫日 == "" ||
+            jsonObject.出庫日 == "" ||
+            jsonObject.荷主保管料金1日 == "" ||
+            jsonObject.荷主保管料金リフトオフ == "" ||
+            jsonObject.荷主保管料金リフトオン == "" ||
+            jsonObject.下払保管料金1日 == "" ||
+            jsonObject.下払保管料金リフトオフ == "" ||
+            jsonObject.下払保管料金リフトオン == ""
+          ) {
+            notification.error({
+              message: "エラー",
+              description: "データを正確に入力してください。",
+            });
+          // }
         } else {
           try {
             if (title) {
@@ -1873,17 +1951,40 @@ const NewOrderFormPage = ({ title, start }) => {
         break;
     }
   };
+  const requestPdfListFake = () => {
+    navigate("/orders_invoices/newRequestFormFake", {
+      state: { data: [pdfData], req: "fake" },
+    });
+  };
   const requestPdfList = () => {
-    navigate("/orders_invoices/requestPdfList", { state: { data: title } });
+    navigate("/orders_invoices/newRequestFormFake", {
+      state: { data: [pdfData], req: "real" },
+    });
   };
-  const requestList = () => {
-    navigate("/orders_invoices/requestList", { state: { data: start } });
-  };
+
   const mail = () => {
     navigate("/orders_invoices/mail");
   };
   const billingList = () => {
     navigate("/orders_invoices/billingList");
+  };
+  const cancelOrder = async () => {
+    const res = await axios.delete(
+      process.env.REACT_API_BASE_URL + `/order/cancel/${"MA" + title.slice(2)}`
+    );
+    if ((res.status = 200)) {
+      notification.success({
+        message: "成功",
+        description: "削除されました。",
+      });
+      setDelFlag(!delFlag);
+      setModal(false);
+    } else {
+      notification.success({
+        message: "エラー",
+        description: "項目は削除されていません。",
+      });
+    }
   };
   return (
     <div className="flex flex-col justify-center items-center w-full">
@@ -1904,10 +2005,15 @@ const NewOrderFormPage = ({ title, start }) => {
         <Button onClick={sendData} type="primary">
           保存
         </Button>
+        {title ? (
+          <Button onClick={requestPdfListFake}>仮依頼書作成</Button>
+        ) : (
+          <></>
+        )}
         {title ? <Button onClick={requestPdfList}>依頼書作成</Button> : <></>}
-        {title ? <Button onClick={requestList}>依頼リスト</Button> : <></>}
         {title ? <Button onClick={mail}>Mail</Button> : <></>}
         {title ? <Button onClick={billingList}>請求一覧</Button> : <></>}
+        {title ? <Button onClick={cancelOrder}>注文キャンセル</Button> : <></>}
       </div>
     </div>
   );

@@ -1,7 +1,10 @@
-import { Button, DatePicker, Form, Select, Table } from "antd";
-import { useState } from "react";
+import { Table } from "antd";
 
 const DepartmentProfitPage = () => {
+  const formatNumber = (num) => {
+    return parseInt(num).toLocaleString("ja-JP");
+  };
+
   const columns = [
     {
       key: "部署コード",
@@ -20,12 +23,14 @@ const DepartmentProfitPage = () => {
       title: "8月",
       dataIndex: "8月",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "9月",
       title: "9月",
       dataIndex: "9月",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
   ];
 
@@ -36,6 +41,7 @@ const DepartmentProfitPage = () => {
       部署名: "東京支店",
       "8月": 1000000,
       "9月": 1500000,
+      
     },
     {
       key: "2",

@@ -14,7 +14,7 @@ const BarChart = (props) => {
   const generateLast7Days = () => {
     const dates = [];
     for (let i = 6; i >= 0; i--) {
-      dates.push(dayjs().subtract(i, "day").format("DD MMM"));
+      dates.push(dayjs().subtract(i, "day").format("MMM-DD"));
     }
     return dates;
   };

@@ -22,7 +22,12 @@ import DepartmentProfitPage from "src/pages/DepartmentProfitPage";
 import MonthlyDepartmentReportPage from "src/pages/MonthlyDepartmentReportPage";
 import InvoiceReceiptPage from "src/pages/InvoiceReceiptPage";
 import NewRequestFormPage from "src/pages/NewRequestFormPage";
+import NewRequestFormFakePage from "src/pages/NewRequestFormFakePage";
 import InvoicePage from "src/pages/InvoicePage";
+import InvoiceGulfPage from "src/pages/InvoiceGulfPage";
+
+
+
 import InvoiceMSPage from "src/pages/InvoiceMSPage";
 import OrderDBPage from "src/pages/OrderDBPage";
 import CalendarPage from "src/pages/CalendarPage";
@@ -31,8 +36,8 @@ import StorageContainerPage from "src/pages/StorageContainerPage";
 import InventoryContainerPage from "src/pages/InventoryContainerPage";
 import ReleaseNotesPage from "src/pages/ReleaseNotesPage";
 import DataPage from "src/pages/DataPage";
-// import CustomerPage from "src/pages/CustomerPage";
-// import PartnerCompanyPage from "src/pages/PartnerCompanyPage";
+import CustomerPage from "src/pages/CustomerPage";
+import PartnerCompanyPage from "src/pages/PartnerCompanyPage";
 import CustomerListPage from "src/pages/CustomerListPage";
 import PartnerCompanyListPage from "src/pages/PartnerCompanyListPage";
 import MonthlyCustomerDBGraphPage from "src/pages/MonthlyCustomerDBGraphPage";
@@ -103,6 +108,7 @@ const AppRouter = () => {
               element={<BillingListPage />}
             />
             <Route path="/orders_invoices/invoice" element={<InvoicePage />} />
+            <Route path="/orders_invoices/invoiceGulf" element={<InvoiceGulfPage />} />
             <Route
               path="/orders_invoices/invoice_Ms"
               element={<InvoiceMSPage />}
@@ -118,6 +124,10 @@ const AppRouter = () => {
             <Route
               path="/orders_invoices/newRequestForm"
               element={<NewRequestFormPage />}
+            />
+             <Route
+              path="/orders_invoices/newRequestFormFake"
+              element={<NewRequestFormFakePage />}
             />
             <Route
               path="/orders_invoices/invoice_receipt"
@@ -158,16 +168,12 @@ const AppRouter = () => {
             />
             <Route
               path="/masterDatas"
-              loader={() => redirect("/masterDatas/partner")}
+              loader={() => redirect("/masterDatas/customer")}
             />
-            {/* <Route path="/masterDatas/customer" element={<CustomerPage />} />
+            <Route path="/masterDatas/customer" element={<CustomerPage />} />
             <Route
               path="/masterDatas/partnerCompany"
               element={<PartnerCompanyPage />}
-            /> */}
-            <Route
-              path="/masterDatas/partner"
-              element={<PartnerPage />}
             />
             <Route
               path="/masterDatas/customerList"
@@ -177,14 +183,8 @@ const AppRouter = () => {
               path="/masterDatas/partnerCompanyList"
               element={<PartnerCompanyListPage />}
             />
-            <Route 
-              path="/masterDatas/shipperList" 
-              element={<ShipperList />} 
-             />
-            <Route 
-              path="/masterDatas/shipCompany" 
-              element={<ShipCompany />} 
-            />
+            <Route path="/masterDatas/shipperList" element={<ShipperList />} />
+            <Route path="/masterDatas/shipCompany" element={<ShipCompany />} />
             <Route
               path="/masterDatas/partner"
               element={<PartnerPage />}
@@ -193,7 +193,7 @@ const AppRouter = () => {
               path="/masterDatas/businessLocation"
               element={<BusinessLocation />}
             />
-            <Route
+             <Route
               path="/masterDatas/vehicleManagementCard"
               element={<VehicleManagementCardPage/>}
             />
@@ -260,7 +260,7 @@ const AppRouter = () => {
               path="/analysis_reports/transportCompanyRequest"
               element={<TransportCompanyRequestPage />}
             />
-            <Route
+             <Route
               path="/analysis_reports/dailySales"
               element={<DailySalesPage/>}
             />
@@ -268,7 +268,6 @@ const AppRouter = () => {
               path="/analysis_reports/monthlySales"
               element={<MonthlySalesPage/>}
             />
-            {/* document_notes */}
             <Route
               path="/document_notes"
               loader={() => redirect("/document_notes/releaseNotes")}
@@ -312,10 +311,6 @@ const AppRouter = () => {
               path="/orders_invoices/officeVehicleDispatchLedger"
               element={<OfficeVehicleDispatchLedgerPage/>}
             />
-            {/* <Route
-              path="/settings_administration/systemSettings"
-              element={<DashboardPage />}
-            /> */}
           </Route>
         </Route>
         <Route

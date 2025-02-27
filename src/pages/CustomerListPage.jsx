@@ -6,7 +6,10 @@ import CTable from "src/components/CTable";
 const CustomerListPage = () => {
   const [datas, setDatas] = useState([]);
   const [editingKey, setEditingKey] = useState(""); // Track which row is being edited
-  const [loading, setLoading] = useState(false); // Loading state for saving data
+  const [loading, setLoading] = useState(true); // Loading state for saving data
+  const formatNumber = (num) => {
+    return parseInt(num).toLocaleString("ja-JP");
+  };
 
   const isEditing = (record) => record._id === editingKey; // Use _id as the key for editing
 
@@ -24,7 +27,7 @@ const CustomerListPage = () => {
         const item = newData[index];
         const updatedRow = { ...item, ...row };
 
-        setLoading(true);
+        setLoading(false);
 
         await axios.put(`/customerPriceList/${_id}`, updatedRow);
 
@@ -71,6 +74,7 @@ const CustomerListPage = () => {
       title: "料金",
       dataIndex: "料金",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}円` : "0円",
     },
     {
       title: "距離",
@@ -123,9 +127,18 @@ const CustomerListPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await axios.get("/customerPriceList");
-      const dataWithKey = res.data.map((item) => ({ ...item, key: item._id })); // Ensure each row has a key as _id
-      setDatas(dataWithKey.sort((a, b) => a.顧客名.localeCompare(b.顧客名)));
+      setLoading(true);
+      try {
+        const res = await axios.get("/customerPriceList");
+        console.log("res.data" , res.data)
+        const dataWithKey = res.data.map((item) => ({ ...item, key: item._id }));
+        setDatas(dataWithKey.sort((a, b) => a.顧客名.localeCompare(b.顧客名)));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        message.error("データの取得に失敗しました。");
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, []);
@@ -165,8 +178,7 @@ const CustomerListPage = () => {
                 required: true,
                 message: `Please Input ${title}!`,
               },
-            ]}
-          >
+            ]}>
             <Input />
           </Form.Item>
         ) : (
@@ -175,7 +187,6 @@ const CustomerListPage = () => {
       </td>
     );
   };
-  console.log(datas);
   const [form] = Form.useForm();
 
   return (
@@ -194,7 +205,7 @@ const CustomerListPage = () => {
           ps={10}
           className="w-full"
           rowClassName="editable-row"
-          loading={loading} // Show loading spinner while saving
+          loading={loading}
         />
       </Form>
     </div>

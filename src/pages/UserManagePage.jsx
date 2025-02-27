@@ -1,5 +1,4 @@
 import {
-  Table,
   Button,
   Form,
   Input,
@@ -16,7 +15,7 @@ const EditableCell = ({
   editing,
   dataIndex,
   title,
-  inputtype,
+  inputType,
   record,
   workStations,
   index,
@@ -131,7 +130,6 @@ const UserManage = () => {
         });
       }
 
-      // Reload the data after successful update
       await loadData();
     } catch (errInfo) {
       notification.error({
@@ -151,7 +149,6 @@ const UserManage = () => {
         description: `User has been successfully deleted.`,
       });
 
-      // Reload the data after successful delete
       await loadData();
     } catch (error) {
       notification.error({
@@ -177,7 +174,6 @@ const UserManage = () => {
       });
       setIsModalVisible(false);
 
-      // Reload the data after successful add
       await loadData();
     } catch (error) {
       notification.error({
@@ -266,7 +262,7 @@ const UserManage = () => {
       ...col,
       onCell: (record) => ({
         record,
-        inputtype: col.dataIndex === "email" ? "email" : "text",
+        inputType: col.dataIndex === "email" ? "email" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),
@@ -282,7 +278,7 @@ const UserManage = () => {
           type="primary"
           onClick={showAddModal}
           style={{ marginBottom: 16 }}>
-          Add User
+          ユーザーを追加
         </Button>
       )}
       <Form form={form} component={false}>
@@ -297,14 +293,12 @@ const UserManage = () => {
           dataSource={datas}
           columns={mergedColumns}
           rowClassName="editable-row"
-          // pagination={{ pageSize: 20 }}
           ps={10}
         />
       </Form>
 
-      {/* Add User Modal */}
       <Modal
-        title="Add User"
+        title="ユーザーを追加"
         visible={isModalVisible}
         onCancel={handleCancel}
         footer={null}>
@@ -353,7 +347,7 @@ const UserManage = () => {
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
-              Add User
+              ユーザーを追加
             </Button>
           </Form.Item>
         </Form>

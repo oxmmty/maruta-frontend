@@ -7,7 +7,7 @@ const axiosSetting = () => {
     },
     (error) => {
       if(error.message === 'Network Error'){
-        Notification('Network Error!', 'error');
+        // Notification('Network Error!', 'error');
       }
       if (error.response) {
         if(error.response.data === "Unauthorized") {

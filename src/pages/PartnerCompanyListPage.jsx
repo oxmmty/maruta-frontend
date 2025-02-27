@@ -1,13 +1,16 @@
-import { DatePicker, Table, Typography, Input, Form, message } from "antd";
+import { Input, Form, message } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import dayjs from "dayjs";
 import CTable from "src/components/CTable";
+import Loading from "src/components/Loading";
 
 const PartnerCompanyListPage = () => {
   const [datas, setDatas] = useState([]);
   const [editingKey, setEditingKey] = useState(""); // Track which row is being edited
-  const [loading, setLoading] = useState(false); // Loading state for saving data
+  const [loading, setLoading] = useState(true); // Loading state for saving data
+  const formatNumber = (num) => {
+    return parseInt(num).toLocaleString("ja-JP");
+  };
 
   const isEditing = (record) => record._id === editingKey; // Check if the row is being edited
 
@@ -24,14 +27,8 @@ const PartnerCompanyListPage = () => {
       if (index > -1) {
         const item = newData[index];
         const updatedRow = { ...item, ...row };
-
-        // Set loading state during the update process
-        setLoading(true);
-
-        // Send the updated row data to the backend using _id as the identifier
+        setLoading(false);
         await axios.put(`/companyPriceList/${_id}`, updatedRow);
-
-        // Update the local data
         newData.splice(index, 1, updatedRow);
         setDatas(newData);
         setEditingKey(""); // Exit edit mode
@@ -49,8 +46,6 @@ const PartnerCompanyListPage = () => {
   const cancel = () => {
     setEditingKey(""); // Exit edit mode without saving
   };
-
-  // Merge row span for the specified field
 
   const columns = [
     {
@@ -78,6 +73,7 @@ const PartnerCompanyListPage = () => {
       title: "料金",
       dataIndex: "料金",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "距離",
@@ -112,7 +108,6 @@ const PartnerCompanyListPage = () => {
     },
   ];
 
-  // Define how editable cells are rendered
   const mergedColumns = columns.map((col) => {
     if (!col.editable) {
       return col;
@@ -146,11 +141,19 @@ const PartnerCompanyListPage = () => {
   };
   useEffect(() => {
     const fetchData = async () => {
-      const res = await axios.get("/companyPriceList");
-      const dataWithKey = res.data.map((item) => ({ ...item, key: item._id })); // Ensure each row has a key as _id
-      setDatas(
-        dataWithKey.sort((a, b) => a.協力会社名.localeCompare(b.協力会社名)),
-      );
+      setLoading(true);
+      try {
+        const res = await axios.get("/companyPriceList");
+        const dataWithKey = res.data.map((item) => ({ ...item, key: item._id }));
+        setDatas(
+          dataWithKey.sort((a, b) => a.協力会社名.localeCompare(b.協力会社名))
+        );
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        message.error("データの取得に失敗しました。");
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, []);
@@ -202,7 +205,7 @@ const PartnerCompanyListPage = () => {
           ps={10}
           className="w-full"
           rowClassName="editable-row"
-          loading={loading} // Show loading spinner while saving
+          loading={loading}
         />
       </Form>
     </div>

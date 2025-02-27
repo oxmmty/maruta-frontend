@@ -28,7 +28,7 @@ const CustomSelect = () => {
       );
       const customers = response.data
         .sort((a, b) => b.カウント - a.カウント)
-        .map((item) => ({ value: item.企業名, label: item.企業名 }));
+        .map((item) => ({ value: item.顧客名称, label: item.顧客名称 }));
       setAllOptions(customers);
       setFilteredOptions(customers);
     } catch (error) {
@@ -60,7 +60,7 @@ const CustomSelect = () => {
         const response = await axios.post(
           process.env.REACT_API_BASE_URL + "/customer",
           {
-            企業名: inputValue,
+            顧客名称: inputValue,
           },
         );
         const newOption = { value: inputValue, label: inputValue };
@@ -87,6 +87,7 @@ const CustomSelect = () => {
       style={{ width: 200 }}
       placeholder="Select or input a value"
       defaultActiveFirstOption={false}
+      showArrow={false}
       filterOption={false}
       onSearch={handleSearch}
       onChange={handleChange}

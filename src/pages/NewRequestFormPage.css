@@ -6,7 +6,7 @@
 
 .styled-table th {
   border: 1px solid black !important; /* Black borders */
-  background-color: white !important; /* White background */
+  /* background-color: white !important; */
   color: black; /* Black text */
   padding: 8px; /* Padding for cells */
   text-align: center; /* Align text to the left */

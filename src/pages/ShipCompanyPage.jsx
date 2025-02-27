@@ -28,7 +28,7 @@ const EditableCell = ({
   editing,
   dataIndex,
   title,
-  inputtype,
+  inputType,
   record,
   index,
   children,
@@ -235,7 +235,7 @@ const ShipCompany = () => {
       ...col,
       onCell: (record) => ({
         record,
-        inputtype: "text",
+        inputType: "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),
@@ -256,7 +256,7 @@ const ShipCompany = () => {
       <Form form={form} component={false}>
         <div className="flex justify-end mb-4">
           <Button onClick={showAddModal} type="primary">
-            荷主を追加
+            船社の追加
           </Button>
         </div>
         <CTable
@@ -276,7 +276,7 @@ const ShipCompany = () => {
       </Form>
 
       <Modal
-        title="Add Customer"
+        title="船社の追加"
         visible={isModalVisible}
         onCancel={handleCancelModal}
         footer={null}>

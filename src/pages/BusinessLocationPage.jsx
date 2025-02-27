@@ -11,17 +11,50 @@ import CTable from "src/components/CTable";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
+const getTelRules = () => [
+  { message: "TELを入力してください！" },
+  {
+    pattern: /^\(?([0-9]{3})\)?[-.●]?([0-9]{3})[-.●]?([0-9]{4})$/,
+    message: "TELは数字とハイフンのみ入力可能です。",
+  },
+];
+
+const getFaxRules = () => [
+  { message: "FAXを入力してください！" },
+  {
+    pattern: /^\(?([0-9]{3})\)?[-.●]?([0-9]{3})[-.●]?([0-9]{4})$/,
+    message: "FAXは数字とハイフンのみ入力可能です。",
+  },
+];
+
+const getAddressRules = () => [
+  { message: "住所を入力してください！" },
+  { min: 10, message: "住所は最低10文字必要です。" },
+];
+
 const EditableCell = ({
   editing,
   dataIndex,
   title,
-  inputtype,
+  inputType,
   record,
   index,
   children,
   ...restProps
 }) => {
   const inputNode = <Input />;
+  const getValidationRules = () => {
+    switch (dataIndex) {
+      case "TEL":
+        return getTelRules();
+      case "FAX":
+        return getFaxRules();
+      case "住所":
+        return getAddressRules();
+      default:
+        return [];
+    }
+  };
   return (
     <td {...restProps}>
       {editing ? (
@@ -64,7 +97,7 @@ const BussinessLocation = () => {
     }
   };
   const tableData = datas
-    .filter((item) => item[selected] !== null)
+    // .filter((item) => item[selected] !== null)
     .sort((a, b) => (b[selected] = a[selected]));
   const isEditing = (record) => record._id === editingKey;
 
@@ -123,8 +156,8 @@ const BussinessLocation = () => {
     try {
       await axios.post(process.env.REACT_API_BASE_URL + `/workstation`, values);
       notification.success({
-        message: "Added",
-        description: "Customer added successfully.",
+        message: "追加成功",
+        description: "作業地が正常に追加されました。",
       });
       setIsModalVisible(false);
       fetchCustomers(); // Reload data after adding
@@ -136,6 +169,8 @@ const BussinessLocation = () => {
     }
   };
 
+ 
+
   const columns = [
     {
       title: "作業地名称",
@@ -143,6 +178,12 @@ const BussinessLocation = () => {
       align: "center",
       editable: true,
     },
+    // {
+    //   title: "搬入返却場所",
+    //   dataIndex: "搬入返却場所",
+    //   align: "center",
+    //   editable: true,
+    // },
     {
       title: "住所",
       dataIndex: "住所",
@@ -216,7 +257,7 @@ const BussinessLocation = () => {
       ...col,
       onCell: (record) => ({
         record,
-        inputtype: "text",
+        inputType: "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),
@@ -256,7 +297,7 @@ const BussinessLocation = () => {
           onClick={showAddModal}
           type="primary"
           style={{ marginBottom: 16 }}
-          className="w-32">
+          className="w-36">
           {selected}追加
         </Button>
       </div>
@@ -279,48 +320,50 @@ const BussinessLocation = () => {
       </Form>
 
       <Modal
-        title="Add Customer"
+        title={`${selected}追加`}
         visible={isModalVisible}
         onCancel={handleCancelModal}
         footer={null}>
         <Form form={addForm} onFinish={handleAdd}>
           <Form.Item
             name="作業地名称"
-            rules={[{ required: true, message: "Please input 作業地名称!" }]}>
+            rules={[{ message: "Please input 作業地名称!" }]}>
             <Input placeholder="作業地名称" />
           </Form.Item>
 
           <Form.Item
             name={selected}
-            rules={[{ required: true, message: `Please input ${selected}!` }]}>
+            rules={[{ message: `Please input ${selected}!` }]}>
             <Input placeholder={selected} />
           </Form.Item>
           <Form.Item
             name="住所"
-            rules={[{ required: true, message: "Please input 住所!" }]}>
+            rules={getAddressRules()}>
             <Input placeholder="住所" />
           </Form.Item>
           <Form.Item
             name="依頼書備考コメント"
             rules={[
-              { required: true, message: "Please input 依頼書備考コメント!" },
+              { message: "Please input 依頼書備考コメント!" },
             ]}>
             <Input placeholder="依頼書備考コメント" />
           </Form.Item>
           <Form.Item
             name="TEL"
-            rules={[{ required: true, message: "Please input TEL!" }]}>
+            rules={getTelRules()}>
             <Input placeholder="TEL" />
           </Form.Item>
           <Form.Item
             name="担当者"
-            rules={[{ required: true, message: "Please input 担当者!" }]}>
+            rules={[{ message: "Please input 担当者!" }]}>
             <Input placeholder="担当者" />
           </Form.Item>
           <Form.Item>
+          <div className="flex justify-end">
             <Button type="primary" htmlType="submit">
-              Add
+              追加
             </Button>
+            </div>
           </Form.Item>
         </Form>
       </Modal>

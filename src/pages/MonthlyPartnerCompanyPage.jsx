@@ -1,22 +1,23 @@
-import { DatePicker, Typography } from "antd";
-import React, { useEffect, useState } from "react";
+import { DatePicker, Typography, Table ,Button  } from "antd";
+import React, { useEffect, useState, useRef } from "react";
 import CTable from "src/components/CTable";
 import dayjs from "dayjs";
 import axios from "axios";
+
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import moment from "moment";
+
 const { Title } = Typography;
 
 const MonthlyPartnerCompanyPage = () => {
   const [date, setDate] = useState(dayjs().format("YYYY-MM"));
   const [datas, setDatas] = useState([]);
   const [filteredDatas, setFilteredDatas] = useState([]);
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const res = await axios.get("/pdfList");
-  //     setDatas(res.data);
-  //     filterData(dayjs().format("YYYY-MM"), res.data);
-  //   };
-  //   fetchData();
-  // }, []);
+  const invoiceRef = useRef();
+  const formatNumber = (num) => {
+    return parseInt(num).toLocaleString("ja-JP");
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -30,14 +31,6 @@ const MonthlyPartnerCompanyPage = () => {
     fetchData();
   }, []);
 
-  // const filterData = (selectedDate, dataToFilter) => {
-  //   const filtered = dataToFilter.filter((item) => {
-  //     const invoiceDate = dayjs(item.依頼日).format("YYYY-MM");
-  //     return invoiceDate === selectedDate;
-  //   });
-  //   setFilteredDatas(filtered);
-  // };
-
   const filterData = (selectedDate, dataToFilter) => {
     const filtered = dataToFilter.filter((item) => {
       const invoiceDate = dayjs(item.依頼日).format("YYYY-MM");
@@ -45,13 +38,6 @@ const MonthlyPartnerCompanyPage = () => {
     });
     setFilteredDatas(filtered);
   };
-  console.log(filteredDatas);
-  // const handleDateChange = (date) => {
-  //   if (date) {
-  //     setDate(date);
-  //     filterData(date.format("YYYY-MM"), datas);
-  //   }
-  // };
   const handleDateChange = (date) => {
     if (date) {
       const formattedDate = date.format("YYYY-MM");
@@ -96,7 +82,6 @@ const MonthlyPartnerCompanyPage = () => {
         highSpeedValue += value * 1.1;
       }
     };
-    // Process each fee or cost
     addAmount(item.basicFee, item.basicFeeTaxable);
     addAmount(item.otherCosts, item.otherCostsTaxable);
     addAmount(item.chassisStorageFee, item.chassisStorageFeeTaxable);
@@ -116,14 +101,47 @@ const MonthlyPartnerCompanyPage = () => {
     };
   });
 
+  const handleDownloadPDF = async () => {
+    try {
+  
+      if (!datas || datas.length === 0) {
+        console.error("No data available for PDF generation.");
+        return;
+      }
+  
+      const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("l", "mm", "a4");
+  
+      const imgWidth = 277; // A4 width in landscape
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+  
+      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+  
+      while (heightLeft > 0) {
+        pdf.addPage();
+        position -= pageHeight;
+        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+  
+      const fileName = `"協力会社別 月次"-${moment().format("YYYY-MM")}.pdf`;
+      pdf.save(fileName);
+  
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
+  };
+
   const currentMonth = dayjs().format("YYYY-MM");
   const lastMonth = dayjs().subtract(1, "month").format("YYYY-MM");
-  // Filter data by current month
   const filteredData = updatedData.filter(
     (item) => dayjs(item.month).format("YYYY-MM") === currentMonth,
   );
-
-  // Group data by companyName
   const groupedByCompany = filteredData.reduce((acc, item) => {
     if (!acc[item.companyName]) {
       acc[item.companyName] = {
@@ -142,8 +160,6 @@ const MonthlyPartnerCompanyPage = () => {
         高速代消費税: 0,
       };
     }
-
-    // Aggregate values for current month
     acc[item.companyName].total支払合計 += item.支払合計;
     acc[item.companyName].課税 += item.課税;
     acc[item.companyName].非課税 += item.非課税;
@@ -161,16 +177,12 @@ const MonthlyPartnerCompanyPage = () => {
     if (item.status) {
       acc[item.companyName].売掛計税抜 += item.支払合計;
     }
-
-    // Check if all statuses are true
     if (!item.status) {
       acc[item.companyName].allStatusTrue = false;
     }
 
     return acc;
   }, {});
-
-  // Calculate last month's total 支払合計
   updatedData.forEach((item) => {
     if (dayjs(item.month).format("YYYY-MM") === lastMonth) {
       if (!groupedByCompany[item.companyName]) {
@@ -180,8 +192,6 @@ const MonthlyPartnerCompanyPage = () => {
         item.支払合計;
     }
   });
-
-  // Calculate 支払い比率 for each company and determine overall status
   const result = Object.values(groupedByCompany).map((company) => ({
     ...company,
     支払い比率:
@@ -190,8 +200,6 @@ const MonthlyPartnerCompanyPage = () => {
         : 0 + " %",
     status: company.allStatusTrue,
   }));
-
-  console.log(result);
 
   const len = result.length;
   const columns = [
@@ -219,12 +227,14 @@ const MonthlyPartnerCompanyPage = () => {
       title: "課税",
       dataIndex: "課税",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "非課税",
       title: "非課税",
       dataIndex: "非課税",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "高速代<br>（内税）",
@@ -237,12 +247,14 @@ const MonthlyPartnerCompanyPage = () => {
         </div>
       ),
       dataIndex: "高速代内税",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "高速代",
       title: "高速代",
       dataIndex: "高速代",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "高速代消費税",
@@ -255,12 +267,14 @@ const MonthlyPartnerCompanyPage = () => {
         </div>
       ),
       dataIndex: "高速代<br>（消費税）",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "税抜合計",
       title: "税抜合計",
       dataIndex: "税抜合計",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "消費税",
@@ -273,6 +287,7 @@ const MonthlyPartnerCompanyPage = () => {
       title: "入金合計",
       dataIndex: "total支払合計",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "max支払日",
@@ -291,6 +306,7 @@ const MonthlyPartnerCompanyPage = () => {
       title: "前月比",
       dataIndex: "lastMonthTotal支払合計",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "売掛計税抜",
@@ -307,6 +323,7 @@ const MonthlyPartnerCompanyPage = () => {
         colSpan: index === len + 5 ? 0 : 1,
       }),
     },
+
     {
       key: "支払い比率",
       title: "支払い比率",
@@ -317,24 +334,28 @@ const MonthlyPartnerCompanyPage = () => {
 
   return (
     <div className="flex flex-col gap-0">
-      <DatePicker
-        onChange={handleDateChange}
-        defaultValue={dayjs(date, "YYYY-MM")}
-        className="grow max-w-96"
-        picker="month"
-      />
-      <Typography className="flex justify-center">
-        <Title level={3}>{date}</Title>
-      </Typography>
-      <CTable
-        dataSource={result}
-        columns={columns}
-        pagination={true}
-        ps={10}
-        bordered
-        scroll={{ x: "max-content" }}
-        className="w-full"
-      />
+      <div className="flex justify-end w-full pb-2 gap-5">
+        <DatePicker
+          onChange={handleDateChange}
+          value={dayjs(date, "YYYY-MM")}
+          picker="month"
+          />
+        <Button type="primary" onClick={handleDownloadPDF}>PDF作成</Button>
+      </div>
+      <div className="flex flex-col justify-center w-full p-5" ref={invoiceRef}>
+        <Typography className="flex justify-center">
+          <Title level={3}>{date}</Title>
+        </Typography>
+        <Table
+          dataSource={result}
+          columns={columns}
+          pagination={false}
+          ps={10}
+          bordered
+          scroll={{ x: "max-content" }}
+          className="w-full"
+        />
+      </div>
     </div>
   );
 };
