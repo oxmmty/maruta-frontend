@@ -1,21 +1,30 @@
-import React, { useContext, useState, useEffect } from "react";
-import { Table } from "antd";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Line, Column } from "@ant-design/plots";
 import { ThemeContext } from "src/components/Theme";
 import dayjs from "dayjs";
 import CTable from "src/components/CTable";
+import { Table ,Button } from "antd";
+
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import moment from "moment";
 
 const MonthlyCustomerDBPage = () => {
   const { theme } = useContext(ThemeContext);
   const [order, setOrder] = useState([]);
   const [customer, setCustomer] = useState([]);
+  const formatNumber = (num) => {
+    return parseInt(num).toLocaleString("ja-JP");
+  };
+  const invoiceRef = useRef();
+  const [showGraph, setShowGraph] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [customers, orders] = await Promise.all([
-          axios.get(process.env.REACT_API_BASE_URL + `/partnercompany`),
+          axios.get(process.env.REACT_API_BASE_URL + `/customer`),
           axios.get(process.env.REACT_API_BASE_URL + `/order`),
         ]);
         setOrder(orders.data);
@@ -26,9 +35,45 @@ const MonthlyCustomerDBPage = () => {
     };
     fetchData();
   }, []);
-  const customers = customer.filter(item => item.得意先 === true).map(item => item.企業名略称);
 
-  // const customers = customer.map((item) => item.企業名略称);
+  const customers = customer.map((item) => item.顧客名称);
+
+  const handleDownloadPDF = async () => {
+    try {
+  
+      if (!customer || customer.length === 0) {
+        console.error("No data available for PDF generation.");
+        return;
+      }
+  
+      const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+  
+      const imgWidth = 190; // A4 width in landscape
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+  
+      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+  
+      while (heightLeft > 0) {
+        pdf.addPage();
+        position -= pageHeight;
+        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+  
+      const fileName = `"顧客別月次グラフ"-${moment().format("YYYY-MM")}.pdf`;
+      pdf.save(fileName);
+  
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
+  };
+
   const calculatePrices = (startDate, endDate) => {
     return customers.map((customerItem) => {
       const matchedOrders = order.filter((orderItem) => {
@@ -55,7 +100,6 @@ const MonthlyCustomerDBPage = () => {
     });
   };
 
-  // Calculate date ranges for each of the required periods
   const startOfCurrentMonth = dayjs().startOf("month");
   const endOfCurrentMonth = dayjs().endOf("month");
 
@@ -74,13 +118,11 @@ const MonthlyCustomerDBPage = () => {
     .subtract(1, "month")
     .endOf("month");
 
-  // Format date values for year-month display (e.g., "2024-09")
   const thisYearThisMonth = startOfCurrentMonth.format("YYYY-MM");
   const lastYearThisMonth = startOfThisMonthLastYear.format("YYYY-MM");
   const thisYearLastMonth = startOfLastMonth.format("YYYY-MM");
   const lastYearLastMonth = startOfLastMonthLastYear.format("YYYY-MM");
 
-  // Calculate prices for each specific period
   const thisYearThisMonthPrice = calculatePrices(
     startOfCurrentMonth,
     endOfCurrentMonth,
@@ -98,7 +140,6 @@ const MonthlyCustomerDBPage = () => {
     endOfLastMonthLastYear,
   );
 
-  // Combine data for each customer and the respective prices for each period
   const combined = customers.map((customer, index) => {
     return {
       customer: customer,
@@ -121,24 +162,28 @@ const MonthlyCustomerDBPage = () => {
       dataIndex: lastYearLastMonth,
       key: "lastYearLastMonth",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: thisYearLastMonth,
       dataIndex: thisYearLastMonth,
       key: "thisYearLastMonth",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: lastYearThisMonth,
       dataIndex: lastYearThisMonth,
       key: "lastYearThisMonth",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: thisYearThisMonth,
       dataIndex: thisYearThisMonth,
       key: "thisYearThisMonth",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
   ];
 
@@ -204,25 +249,35 @@ const MonthlyCustomerDBPage = () => {
   return (
     <div className="mx-auto p-4">
       <h1 className="text-center text-2xl font-bold mb-4">顧客別月次グラフ</h1>
-      <div className="mb-4">
-        <CTable
-          dataSource={combined}
-          columns={columns}
-          pagination={false}
-          bordered
-          ps={5}
-          scroll={{ x: "max-content" }}
-        />
+      <div className="flex justify-end w-full pb-2 gap-5">
+        <Button type="primary" onClick={() => setShowGraph(!showGraph)}>{showGraph ? '表' : 'チャート'}</Button>
+        <Button type="primary" onClick={handleDownloadPDF}>PDF作成</Button>
       </div>
-      <div className="flex flex-wrap flex-row items-center gap-5 w-full pt-5">
-        <div className="flex-1 min-w-[250px] text-center">
-          <h2>月次比較</h2>
-          <Line {...config} />
+      <div className="flex flex-col justify-center w-full p-5" ref={invoiceRef}>
+        {!showGraph && (
+        <div className="mb-4">
+          <Table
+            dataSource={combined}
+            columns={columns}
+            pagination={false}
+            bordered
+            ps={5}
+            scroll={{ x: "max-content" }}
+          />
         </div>
-        <div className="flex-1 min-w-[250px] text-center">
-          <h2>月次合計</h2>
-          <Column {...barConfig} />
-        </div>
+        )}
+        {showGraph && (
+          <div className="flex flex-wrap flex-row items-center gap-5 w-full pt-5">
+            <div className="flex-1 min-w-[250px] text-center">
+              <h2>月次比較</h2>
+              <Line {...config} />
+            </div>
+            <div className="flex-1 min-w-[250px] text-center">
+              <h2>月次合計</h2>
+              <Column {...barConfig} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

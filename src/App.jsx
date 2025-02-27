@@ -39,7 +39,6 @@ import StorageOutlinedIcon from "@mui/icons-material/StorageOutlined";
 import SsidChartOutlinedIcon from "@mui/icons-material/SsidChartOutlined";
 import QueryStatsOutlinedIcon from "@mui/icons-material/QueryStatsOutlined";
 
-
 axiosSetting();
 
 const dashboard = [
@@ -63,12 +62,12 @@ const orders_invoices = [
   },
   {
     key: "db",
-    label: "DB",
+    label: "すべての受注DB",
     icon: <DatabaseOutlined />,
   },
   {
     key: "orderDB",
-    label: "受注DB",
+    label: "オープン受注DB",
     icon: <UnorderedListOutlined />,
   },
 
@@ -84,7 +83,7 @@ const orders_invoices = [
   },
   {
     key: "mail",
-    label: "Mail",
+    label: "メール",
     icon: <MailOutlined />,
   },
   {
@@ -92,11 +91,6 @@ const orders_invoices = [
     label: "請求一覧",
     icon: <PayCircleOutlined />,
   },
-  // {
-  //   key: "invoice_receipt",
-  //   label: "送り状・受領書",
-  //   icon: <FileDoneOutlined />,
-  // },
   {
     key: "work_completion_report",
     label: "作業完了報告書",
@@ -140,12 +134,12 @@ const containers = [
 const masterDatas = [
   // {
   //   key: "customer",
-  //   label: "得意先",
+  //   label: "顧客",
   //   icon: <UserAddOutlined />,
   // },
   // {
   //   key: "partnerCompany",
-  //   label: "仕入先",
+  //   label: "協力会社",
   //   icon: <UsergroupAddOutlined />,
   // },
   {
@@ -195,12 +189,12 @@ const masterDatas = [
 const analysis_reports = [
   {
     key: "monthlyCustomerDBGraph",
-    label: "月ごとの売掛買掛集計",
+    label: "顧客別 月次グラフDB",
     icon: <QueryStatsOutlinedIcon />,
   },
   {
     key: "monthlyPartnerCompanyDBGraph",
-    label: "月ごとの庸車売上集計",
+    label: "協力会社別 月次グラフDB",
     icon: <SsidChartOutlinedIcon />,
   },
   {
@@ -283,13 +277,8 @@ const settings_administration = [
   {
     key: "userManagements",
     label: "ユーザー管理",
-    icon: <UserAddOutlined />,
   },
-  {
-    key: "businessOffice",
-    label: "事業所",
-    icon: <AppstoreAddOutlined />, // Example icon
-  },
+  { key: "businessOffice", label: "事業所" },
   // {
   //   key: "systemSettings",
   //   label: "システム設定",

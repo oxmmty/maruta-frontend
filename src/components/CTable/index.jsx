@@ -3,7 +3,7 @@ import { Table, Pagination } from "antd";
 import PropTypes from "prop-types";
 const CTable = (props) => {
   const [page, setPage] = useState({ pn: 1, ps: props.ps });
-  const [data, setData] = useState([]);
+  const [data, setData] = useState();
   const { pn, ps } = page;
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const CTable = (props) => {
   return (
     <div className="flex flex-col h-full rounded-lg ">
       <Table
-        loading={!data.length}
+        loading={!data}
         {...props}
         dataSource={data}
         sticky
@@ -36,7 +36,11 @@ const CTable = (props) => {
         pagination={false}
         style={{ width: "100%" }}
         tableLayout="fixed"
-        // scroll={{ x: "max-content" }}
+        rowClassName={(record) => {
+          if (record?.依頼書 === true) return "bg-green-100";
+          if (record?.仮依頼書 === true) return "bg-red-100";
+          return "";
+        }}
         className="w-full h-full"
       />
       <div className="flex justify-center w-full bg-bg-light rounded-md ">

@@ -1,13 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { DatePicker, Typography } from "antd";
+import React, { useState, useEffect, useRef } from "react";
+import { DatePicker, Typography, Button, Table } from "antd";
 import CTable from "src/components/CTable";
 import dayjs from "dayjs";
 import axios from "axios";
+
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import moment from "moment";
 
 const DBSPage = () => {
   const [date, setDate] = useState(dayjs().startOf("month"));
   const [datas, setDatas] = useState([]);
   const [filteredDatas, setFilteredDatas] = useState([]);
+  const formatNumber = (num) => {
+    return parseInt(num).toLocaleString("ja-JP");
+  };
+  const invoiceRef = useRef();
+
   useEffect(() => {
     const fetchData = async () => {
       const res = await axios.get("/pdfList");
@@ -32,6 +41,42 @@ const DBSPage = () => {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+  
+      if (!filteredDatas || filteredDatas.length === 0) {
+        console.error("No data available for PDF generation.");
+        return;
+      }
+  
+      const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("l", "mm", "a4");
+  
+      const imgWidth = 277; // A4 width in landscape
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+  
+      pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+  
+      while (heightLeft > 0) {
+        pdf.addPage();
+        position -= pageHeight;
+        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+  
+      const fileName = `"協力会社別月次"-${moment().format("YYYY-MM")}.pdf`;
+      pdf.save(fileName);
+  
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
+  };
+
   const columns = [
     {
       title: "No",
@@ -52,8 +97,13 @@ const DBSPage = () => {
       align: "center",
       render: (text, record) => (record.status == true ? "Yes" : "No"),
     },
-    { title: "課税", dataIndex: "課税", key: "課税", align: "center" },
-    { title: "非課税", dataIndex: "非課税", key: "非課税", align: "center" },
+    { title: "課税", dataIndex: "課税", key: "課税", align: "center" ,
+      render: (text) => text ? `${formatNumber(text)}` : "0",
+
+    },
+    { title: "非課税", dataIndex: "非課税", key: "非課税", align: "center" ,
+      render: (text) => text ? `${formatNumber(text)}` : "0",
+    },
     {
       key: "高速代内税",
       align: "center",
@@ -65,12 +115,14 @@ const DBSPage = () => {
         </div>
       ),
       dataIndex: "高速代内税",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "高速代",
       title: "高速代",
       align: "center",
       dataIndex: "高速代",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "高速代消費税",
@@ -83,19 +135,24 @@ const DBSPage = () => {
         </div>
       ),
       dataIndex: "高速代消費税",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "税抜合計",
       dataIndex: "税抜合計",
       key: "税抜合計",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
-    { title: "消費税", dataIndex: "消費税", key: "消費税", align: "center" },
+    { title: "消費税", dataIndex: "消費税", key: "消費税", align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
+     },
     {
       title: "支払合計",
       dataIndex: "total支払合計",
       key: "total支払合計",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       key: "max支払日",
@@ -120,6 +177,7 @@ const DBSPage = () => {
       dataIndex: "売掛計税抜",
       key: "売掛計税抜",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "支払い比率",
@@ -257,7 +315,7 @@ const DBSPage = () => {
   return (
     <div className="mx-auto p-4">
       <h1 className="text-center text-2xl font-bold mb-4">協力会社別月次</h1>
-      <div className="flex justify-end w-full pb-2">
+      <div className="flex justify-end w-full pb-2 gap-5">
         <Typography>
           <DatePicker
             picker="month"
@@ -266,12 +324,13 @@ const DBSPage = () => {
             className="grow max-w-96"
           />
         </Typography>
+        <Button type="primary" onClick={handleDownloadPDF}>PDF作成</Button>
       </div>
-      <div className="mb-4">
-        <CTable
+      <div className="mb-4" ref={invoiceRef} >
+        <Table
           dataSource={result}
           columns={columns}
-          pagination={true}
+          pagination={false}
           ps={10}
           bordered
           scroll={{ x: "max-content" }}

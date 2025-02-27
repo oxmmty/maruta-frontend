@@ -9,7 +9,11 @@ const RequestPdfListPage = () => {
   const [date, setDate] = useState(dayjs().startOf("month"));
   const [datas, setDatas] = useState([]);
   const [filteredDatas, setFilteredDatas] = useState([]);
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const formatNumber = (num) => {
+    return parseInt(num).toLocaleString("ja-JP");
+  };
+  
+  const [selectedRowKey, setSelectedRowKey] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const data = location.state?.data;
@@ -21,7 +25,7 @@ const RequestPdfListPage = () => {
       render: (_, record) => (
         <input
           type="checkbox"
-          checked={selectedRowKeys.includes(record.リクエスト番号)}
+          checked={selectedRowKey === record.リクエスト番号}
           onChange={() => handleCheckboxChange(record.リクエスト番号)}
         />
       ),
@@ -42,6 +46,24 @@ const RequestPdfListPage = () => {
       dataIndex: "部署コード",
       key: "部署コード",
       align: "center",
+    },
+    {
+      title: "仮依頼書",
+      dataIndex: "仮依頼書",
+      key: "仮依頼書",
+      align: "center",
+      render: (text, record) => (
+        <input type="checkbox" checked={record.仮依頼書 === true} />
+      ),
+    },
+    {
+      title: "依頼書",
+      dataIndex: "依頼書",
+      key: "依頼書",
+      align: "center",
+      render: (text, record) => (
+        <input type="checkbox" checked={record.依頼書 === true} />
+      ),
     },
     {
       title: "支払い確認",
@@ -118,8 +140,8 @@ const RequestPdfListPage = () => {
     },
     {
       title: "配達先",
-      dataIndex: "配達先",
-      key: "配達先",
+      dataIndex: "配達先1",
+      key: "配達先1",
       align: "center",
     },
     {
@@ -173,6 +195,7 @@ const RequestPdfListPage = () => {
       dataIndex: "3軸料金1",
       key: "3軸料金1",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "配達先2",
@@ -343,30 +366,35 @@ const RequestPdfListPage = () => {
       dataIndex: "基本料金",
       key: "基本料金",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "その他費用",
       dataIndex: "その他費用",
       key: "その他費用",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "スケール費",
       dataIndex: "スケール費",
       key: "スケール費",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "高速費",
       dataIndex: "高速費",
       key: "高速費",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "シャーシ留置費",
       dataIndex: "シャーシ留置費",
       key: "シャーシ留置費",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "備考欄",
@@ -374,13 +402,13 @@ const RequestPdfListPage = () => {
       key: "備考欄",
       align: "center",
     },
-    
   ];
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await axios.get("/pdfList");
         setDatas(res.data);
+        console.log("data" , datas)
         filterData(dayjs().format("YYYY-MM"), res.data);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -391,10 +419,13 @@ const RequestPdfListPage = () => {
 
   const filterData = (selectedDate, dataToFilter) => {
     if (data) {
+
       const filtered = dataToFilter.filter((item) => {
         const invoiceDate = dayjs(item.依頼日).format("YYYY-MM");
-        return invoiceDate === selectedDate, data === item.受注コード;
+
+        return invoiceDate === selectedDate || data === item.受注コード;
       });
+
       setFilteredDatas(filtered);
     } else {
       const filtered = dataToFilter.filter((item) => {
@@ -404,28 +435,28 @@ const RequestPdfListPage = () => {
       setFilteredDatas(filtered);
     }
   };
-  const handleDateChange = (date) => {
-    if (date) {
-      setDate(date);
-      filterData(date.format("YYYY-MM"), datas);
+  const handleDateChange = (dateValue, dateString) => {
+    if (dateValue) {
+      setDate(dateValue);
+      filterData(dateValue.format("YYYY-MM"), datas);
+    } else {
+      setDate(dayjs());
+      setFilteredDatas(datas);
     }
   };
 
   const handleCheckboxChange = (リクエスト番号) => {
-    setSelectedRowKeys((prevKeys) =>
-      prevKeys.includes(リクエスト番号)
-        ? prevKeys.filter((key) => key !== リクエスト番号)
-        : [...prevKeys, リクエスト番号],
+    setSelectedRowKey((prevKey) =>
+      prevKey === リクエスト番号 ? null : リクエスト番号
     );
   };
-
   const handlePaymentConfirmationChange = async (record) => {
     const newValue = !record.支払い確認;
 
     setFilteredDatas((prevDatas) =>
       prevDatas.map((data) =>
-        data._id === record._id ? { ...data, 支払い確認: newValue } : data,
-      ),
+        data._id === record._id ? { ...data, 支払い確認: newValue } : data
+      )
     );
 
     try {
@@ -437,20 +468,27 @@ const RequestPdfListPage = () => {
 
       setFilteredDatas((prevDatas) =>
         prevDatas.map((data) =>
-          data._id === record._id ? { ...data, 支払い確認: !newValue } : data,
-        ),
+          data._id === record._id ? { ...data, 支払い確認: !newValue } : data
+        )
       );
     }
   };
 
-  const handlePdfButtonClick = () => {
+  const handlePdfButtonClick = (param) => {
     const selectedRows = filteredDatas.filter((row) =>
-      selectedRowKeys.includes(row.リクエスト番号),
+      selectedRowKey.includes(row.リクエスト番号)
     );
+    console.log("selectedRows" , selectedRows);
     if (selectedRows.length > 0) {
-      navigate("/orders_invoices/newRequestForm", {
-        state: { data: selectedRows },
-      });
+      if (param == "依頼書") {
+        navigate("/orders_invoices/newRequestForm", {
+          state: { data: selectedRows, req: "real" },
+        });
+      } else if (param == "仮依頼書") {
+        navigate("/orders_invoices/newRequestFormFake", {
+          state: { data: selectedRows, req: "fake" },
+        });
+      }
     } else {
       alert("Please select at least one request.");
     }
@@ -460,11 +498,29 @@ const RequestPdfListPage = () => {
     <div className="flex flex-col items-center gap-4">
       <div className="sm:flex-row justify-evenly w-full">
         <Typography className="ml-10 mt-5 justify-center">
-          <DatePicker picker="month" value={date} onChange={handleDateChange} />
+          <DatePicker
+            picker="month"
+            // value={date}
+            defaultValue={dayjs(date, "YYYY-MM")}
+            onChange={handleDateChange}
+          />
         </Typography>
-        <Button type="primary" onClick={handlePdfButtonClick} className="mt-5">
-          PDF
-        </Button>
+        <div className="ml-4 flex-row flex gap-4">
+          <Button
+            type="primary"
+            onClick={(e) => handlePdfButtonClick("仮依頼書")}
+            className="mt-5"
+          >
+            仮依頼書
+          </Button>
+          <Button
+            type="primary"
+            onClick={(e) => handlePdfButtonClick("依頼書")}
+            className="mt-5"
+          >
+            依頼書
+          </Button>
+        </div>
       </div>
 
       <div className="w-full">

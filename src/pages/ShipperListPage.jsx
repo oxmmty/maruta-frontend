@@ -33,7 +33,7 @@ const EditableCell = ({
   editing,
   dataIndex,
   title,
-  inputtype,
+  inputType,
   record,
   index,
   children,
@@ -243,7 +243,7 @@ const ShipperList = () => {
       ...col,
       onCell: (record) => ({
         record,
-        inputtype: "text",
+        inputType: "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),

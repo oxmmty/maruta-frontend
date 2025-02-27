@@ -7,8 +7,8 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 const MailPage = () => {
-  const [data, setData] = useState([]);
   const [recipient, setRecipient] = useState("");
+  const [data, setData] = useState([]);
   const [subject, setSubject] = useState("輸送依頼書の送信");
   const [body, setBody] = useState(
     "いつもお世話になっております。輸送リストと輸送依頼書をお送りいたします。\nよろしくお願いいたします。",
@@ -29,16 +29,17 @@ const MailPage = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get("/pdfList");
+        
         const responseData = response.data.filter((item) => item.選択 === true);
         setData(responseData);
+        console.log(responseData)
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
+    
     fetchData();
   }, []);
-
   const fetchRecipientEmail = async (companyName) => {
     try {
       const response = await axios.get("/partnerCompany/filter", {
@@ -63,6 +64,8 @@ const MailPage = () => {
     return matchesDate && matchesCompany;
   });
   const handleSendEmail = async () => {
+    
+    
     if (!recipient) {
       alert("Please enter the recipient's email address.");
       return;
@@ -89,9 +92,11 @@ const MailPage = () => {
     try {
       await axios.put(
         process.env.REACT_API_BASE_URL + `/order/update/${selectedRowKey}`,
+        
         {
           mail作成日: updatedDeliveryDate,
         },
+        console.log("data", data)
       );
 
       setData((prevData) =>
@@ -137,10 +142,22 @@ const MailPage = () => {
       render: (text, record) => {
         return `${record.下払会社名} ${dayjs(record.配達日1).format(
           "YYMMDD",
-        )} ${dayjs(record.配達時間1).format("HHmm")} ${record.配達先} ${
+        )} ${dayjs(record.配達時間1).format("HHmm")} ${record.配達先1} ${
           record.受注コード
         }.pdf`;
       },
+    },
+    {
+      title: "発行",
+      dataIndex: "mail発行",
+      key: "発行",
+      align: "center",
+      render: (text, record) => (
+        <input
+          type="checkbox"
+          checked={record.mail発行 === true}
+        />
+      ),
     },
     {
       title: "協力会社",
@@ -150,8 +167,8 @@ const MailPage = () => {
     },
     {
       title: "配達先",
-      dataIndex: "配達先",
-      key: "配達先",
+      dataIndex: "配達先1",
+      key: "配達先1",
       align: "center",
     },
     {
@@ -176,7 +193,7 @@ const MailPage = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="filter-controls">
+      <div className="flex filter-controls items-center">
         <DatePicker
           onChange={(date) => setFilterDate(date)}
           placeholder="Filter by Date"
@@ -200,6 +217,16 @@ const MailPage = () => {
         <Button onClick={() => setFilterDate(null) || setFilterCompany("")}>
           Clear Filters
         </Button>
+        <div className="flex items-center pl-10 pt-3 gap-4">
+          <div className="flex gap-2 items-center pb-3">
+            <div className="w-14 h-5 bg-green-100"></div>
+            <p>依頼書発行</p>
+          </div>
+          <div className="flex gap-2 items-center pb-3">
+            <div className="w-14 h-5 bg-red-100"></div>
+            <p>仮依頼書発行</p>
+          </div>
+        </div>
       </div>
 
       <CTable
@@ -213,7 +240,7 @@ const MailPage = () => {
       <Modal open={isModalOpen} onCancel={handleCancel} footer={null}>
         <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
           <div>
-            <label htmlFor="recipient">Recipient Email:</label>
+            <label htmlFor="recipient">受信者のメール</label>
             <Input
               type="email"
               id="recipient"
@@ -226,7 +253,7 @@ const MailPage = () => {
           </div>
 
           <div>
-            <label htmlFor="subject">Subject:</label>
+            <label htmlFor="subject">主題</label>
             <Input
               type="text"
               id="subject"
@@ -239,7 +266,7 @@ const MailPage = () => {
           </div>
 
           <div>
-            <label htmlFor="body">Email Body:</label>
+            <label htmlFor="body">コンテンツ</label>
             <TextArea
               id="body"
               placeholder="Write your message here..."
@@ -255,7 +282,7 @@ const MailPage = () => {
             />
           </div>
 
-          <Button onClick={handleSendEmail}>Send Email</Button>
+          <Button onClick={handleSendEmail}>メールを送信</Button>
         </div>
       </Modal>
     </div>

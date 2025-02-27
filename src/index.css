@@ -23,6 +23,7 @@
   --bg-dark: #f4f6f9;
   --bg-light: #ffffff;
   --bg-light-dark: #ffffffea;
+  --base-300: #d6d6d8;
   --base-200: #e8eef6;
   --base-500: #f3f3f3;
   --base-600: #f2f2f2;
@@ -44,6 +45,7 @@
   --bg-light-dark: #2a3142;
   --base-200: #1d1d1d;
   --base-500: #464646;
+  --base-300: #111113;
   --base-600: #565656;
   --base-700: #666666;
   --base-800: #767676;
@@ -163,7 +165,4 @@ textarea {
 
 .special .ant-form-item-required {
   color: var(--text-special) !important;
-}
-.ant-drawer-content-wrapper{
-  width: 240px !important;
 }

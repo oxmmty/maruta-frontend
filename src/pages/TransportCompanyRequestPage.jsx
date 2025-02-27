@@ -1,54 +1,94 @@
 import React from "react";
-import { Table, Tag } from "antd";
+import { Table } from "antd";
 import moment from "moment";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import dayjs from "dayjs";
 
 const TransportCompanyRequestPage = () => {
+
+  const [allData, setAllData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_API_BASE_URL}/orderlist`,
+      );
+      setAllData(response.data);
+      console.log(allData)
+      setFilteredData(response.data);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const columns = [
     {
       title: "配送日",
-      dataIndex: "deliveryDate",
+      dataIndex: "配達日1",
       key: "deliveryDate",
       align: "center",
+      render: (text, record) => {
+        if (record.配達日1) {
+          return dayjs(record.配達日1).format("YYYY-MM-DD");
+        }
+      },
     },
     {
       title: "ピック日",
-      dataIndex: "pickDate",
+      dataIndex: "createdAt",
       key: "pickDate",
       align: "center",
+      render: (text, record) => {
+        if (record.createdAt) {
+          return dayjs(record.createdAt).format("YYYY-MM-DD");
+        }
+      },
     },
     {
       title: "時間",
-      dataIndex: "time",
+      dataIndex: "配達時間1",
       key: "time",
       align: "center",
     },
     {
       title: "コンテナ種類",
-      dataIndex: "containerType",
+      dataIndex: "コンテナサイズ",
       key: "containerType",
       align: "center",
     },
     {
       title: "軸数",
-      dataIndex: "axisCount",
+      dataIndex: "3軸数",
       key: "axisCount",
       align: "center",
+      render: (value) => (value ? "3" : ""),
     },
     {
       title: "MG有無",
-      dataIndex: "mgPresence",
+      dataIndex: "コンテナタイプ",
       key: "mgPresence",
       align: "center",
     },
     {
       title: "BOOKING NO.",
-      dataIndex: "bookingNo",
+      dataIndex: "BKNo",
       key: "bookingNo",
       align: "center",
     },
     {
       title: "コンテナNo.",
-      dataIndex: "containerNo",
+      dataIndex: "コンテナNo",
       key: "containerNo",
       align: "center",
     },
@@ -60,9 +100,14 @@ const TransportCompanyRequestPage = () => {
     },
     {
       title: "依頼日",
-      dataIndex: "requestDate",
+      dataIndex: "積日1",
       key: "requestDate",
       align: "center",
+      render: (text, record) => {
+        if (record.積日1) {
+          return dayjs(record.積日1).format("YYYY-MM-DD");
+        }
+      },
     },
   ];
 
@@ -170,7 +215,6 @@ const TransportCompanyRequestPage = () => {
   ];
 
   const getRowClassName = (record) => {
-    const currentDate = moment().format("YYYY-MM-DD");
     const updatedDate = moment("2024-08-31", "YYYY-MM-DD").format("YYYY-MM-DD");
 
     const recordDeliveryDate = moment(record.deliveryDate, "M月D日").format(
@@ -191,7 +235,7 @@ const TransportCompanyRequestPage = () => {
   return (
     <Table
       columns={columns}
-      dataSource={data}
+      dataSource={filteredData}
       pagination={false}
       rowClassName={getRowClassName}
     />

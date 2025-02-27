@@ -26,14 +26,41 @@ const CalendarPage = () => {
   const [eventPickupLocation, setEventPickupLocation] = useState("");
   const [eventDeliveryLocation, setEventDeliveryLocation] = useState("");
   const [orderModal, setOrderModal] = useState(false);
+  const [delFlag, setDelFlag] = useState(false);
   const navigate = useNavigate();
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    content: "",
+    position: { top: 0, left: 0 },
+  });
 
   const fetchData = async () => {
     try {
       const response = await axios.get("/orderlist");
+      const stateManagement = await axios.get("/pdflist");
+
+      // Add state fields from stateManagement to matching orders
+      response.data = response.data.map((order) => {
+        const matchingState = stateManagement.data.find((state) => {
+          const orderCode = order.識別コード?.slice(2) || "";
+          const stateCode = state.受注コード?.slice(2) || "";
+          return orderCode && stateCode && orderCode === stateCode;
+        });
+
+        if (matchingState) {
+          return {
+            ...order,
+            mail発行: matchingState.mail発行,
+            発行: matchingState.発行,
+            仮依頼書: matchingState.仮依頼書,
+            依頼書: matchingState.依頼書,
+            delete: matchingState.delete,
+          };
+        }
+        return order;
+      });
       const rawData = response.data.filter(
-        (item) =>
-          !item.hasOwnProperty("支払い確認") || item.支払い確認 !== true,
+        (item) => !item.hasOwnProperty("支払い確認") || item.支払い確認 !== true
       );
       const formattedEvents = rawData.flatMap((item) => {
         const eventsList = [];
@@ -42,20 +69,25 @@ const CalendarPage = () => {
           item["配達日2"],
           item["配達日3"],
         ].filter(Boolean).length;
-
         if (item["配達日1"]) {
           const content =
             hasDeliveryDates > 1
               ? `${item["識別コード"]}-01`
               : item["識別コード"];
+          const additionalContent = `${item["下払会社名1"]}, ${
+            item["配達先1"]
+          }, ${item["3軸数"] ? "3軸" : ""}, ${item["配達時間1"]},  ${
+            item["取場所"]
+          },${item["コンテナサイズ"]}, ${item["コンテナ種類"]}`;
           addEvent(
             eventsList,
             item["配達日1"],
             item["配達時間1"],
             content,
+            additionalContent,
             item,
             item["取場所"],
-            item["配達先1"],
+            item["配達先1"]
           );
         }
         if (item["配達日2"]) {
@@ -67,7 +99,7 @@ const CalendarPage = () => {
             content,
             item,
             item["取場所"],
-            item["配達先2"],
+            item["配達先2"]
           );
         }
         if (item["配達日3"]) {
@@ -79,7 +111,7 @@ const CalendarPage = () => {
             content,
             item,
             item["取場所"],
-            item["配達先3"],
+            item["配達先3"]
           );
         }
         return eventsList;
@@ -95,12 +127,13 @@ const CalendarPage = () => {
     date,
     time,
     content,
+    additionalContent,
     item,
     pickupLocation,
-    deliveryLocation,
+    deliveryLocation
   ) => {
     const existingEvent = eventsList.find(
-      (event) => event.content === content && event.date === date,
+      (event) => event.content === content && event.date === date
     );
 
     if (!existingEvent) {
@@ -111,20 +144,23 @@ const CalendarPage = () => {
         : item["ピックチェック"] == true && item["配車組み"] == true
         ? "success"
         : null;
-
       let backgroundColor;
-      let borderColor;
-      let textColor = "#ffffff";
+      let textColor;
+      let descriptionColor;
 
-      if (type === "success") {
-        backgroundColor = "#f44336";
-        borderColor = "#f44336";
-      } else if (type === "warning") {
-        backgroundColor = "#ff9800";
-        borderColor = "#ff9800";
-      } else if (type === "error") {
-        backgroundColor = "#4caf50";
-        borderColor = "#4caf50";
+      if (item["mail発行"] == true) {
+        backgroundColor = "blue";
+        textColor = "white";
+      } else if (item["発行"] == true) {
+        backgroundColor = "green";
+        textColor = "white";
+      } else if (item["依頼書"] == true) {
+        backgroundColor = "red";
+        textColor = "white";
+        descriptionColor = "white";
+      } else if (item["仮依頼書"] == true) {
+        backgroundColor = "black";
+        textColor = "white";
       }
 
       if (type) {
@@ -141,10 +177,13 @@ const CalendarPage = () => {
             title: content,
             start: formattedDate + formattedTime,
             backgroundColor,
-            borderColor,
             textColor,
-            eventPickupLocation: pickupLocation,
-            eventDeliveryLocation: deliveryLocation,
+            descriptionColor,
+            extendedProps: {
+              description: additionalContent,
+              pickupLocation,
+              deliveryLocation,
+            },
           });
         }
       }
@@ -153,13 +192,13 @@ const CalendarPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [delFlag]);
   const dashboard = () => {
     navigate("/dashboard");
   };
-  // const newCustomer = () => {
-  //   navigate("/masterDatas/customer");
-  // };
+  const newCustomer = () => {
+    navigate("/masterDatas/customer");
+  };
   const newCompany = () => {
     navigate("/masterDatas/partnerCompany");
   };
@@ -180,8 +219,13 @@ const CalendarPage = () => {
   function handleEventClick(clickInfo) {
     setTitle(clickInfo.event.title);
     setStart(clickInfo.event.start);
+    console.log("start", start);
     setPickupLocation(clickInfo.event.pickupLocation);
     setDeliveryLocation(clickInfo.event.deliveryLocation);
+    console.log(
+      "clickInfo.event.deliveryLocation",
+      clickInfo.event.deliveryLocation
+    );
     setModal(true);
   }
 
@@ -194,21 +238,105 @@ const CalendarPage = () => {
   function handleClose() {
     setModal(false);
   }
+
+  const handleEventMouseEnter = (info) => {
+    setTooltip({
+      visible: true,
+      content: info.event.extendedProps.description,
+      position: {
+        top: info.jsEvent.clientY + 10,
+        left: info.jsEvent.clientX + 10,
+      },
+    });
+  };
+
+  const handleEventMouseLeave = () => {
+    setTooltip({ ...tooltip, visible: false });
+  };
+
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+
+const updateDate = (date) => {
+  if (calendarRef.current) {
+    const calendarApi = calendarRef.current.getApi();
+    calendarApi.gotoDate(date);
+    setSelectedDate(date); // Update state to reflect changes
+  }
+};
+
+const handleDateChange = (e) => {
+  updateDate(e.target.value);
+};
+
+const handleNextMonth = () => {
+  if (calendarRef.current) {
+    const calendarApi = calendarRef.current.getApi();
+    const date = new Date(calendarApi.currentData.dateProfile.currentDate);
+    date.setMonth(date.getMonth() + 1);
+    updateDate(date.toISOString().split("T")[0]);
+  }
+};
+
+const handlePrevMonth = () => {
+  if (calendarRef.current) {
+    const calendarApi = calendarRef.current.getApi();
+    const date = new Date(calendarApi.currentData.dateProfile.currentDate);
+    date.setMonth(date.getMonth() - 1);
+    updateDate(date.toISOString().split("T")[0]);
+  }
+};
+
+const handleNextYear = () => {
+  if (calendarRef.current) {
+    const calendarApi = calendarRef.current.getApi();
+    const date = new Date(calendarApi.currentData.dateProfile.currentDate);
+    date.setFullYear(date.getFullYear() + 1);
+    updateDate(date.toISOString().split("T")[0]);
+  }
+};
+
+const handlePrevYear = () => {
+  if (calendarRef.current) {
+    const calendarApi = calendarRef.current.getApi();
+    const date = new Date(calendarApi.currentData.dateProfile.currentDate);
+    date.setFullYear(date.getFullYear() - 1);
+    updateDate(date.toISOString().split("T")[0]);
+  }
+};
+
+const handleToday = () => {
+  const today = new Date().toISOString().split("T")[0];
+  updateDate(today);
+};
+
+useEffect(() => {
+  const button = document.querySelector(".fc-customInput-button");
+  if (button) {
+    button.innerHTML = `<input type="date" id="dateInput" />`;
+    const input = button.querySelector("#dateInput");
+    if (input) {
+      input.value = selectedDate; // Sync input with the current date
+      input.addEventListener("change", handleDateChange);
+    }
+  }
+}, [selectedDate]);
+
+
   return (
     <div>
       <Container className="w-full">
         <Row>
           <Col md={12} className="flex justify-between">
-            <div className="md:w-[10%] hidden md:block w-0">
+            <div className="md:w-[15%] hidden md:block w-0">
               <div className="pl-auto pr-auto pt-10 w-fit flex flex-col gap-10">
                 <Button onClick={orderOpen} className="w-2/3">
                   受注入力
                 </Button>
                 <div className="w-2/3">
                   <Group label={"新規登録"}>
-                    {/* <Button onClick={newCustomer} className="w-full my-2">
+                    <Button onClick={newCustomer} className="w-full my-2">
                       顧客
-                    </Button> */}
+                    </Button>
                     <Button onClick={newCompany} className="w-full my-2">
                       協力会社
                     </Button>
@@ -224,8 +352,26 @@ const CalendarPage = () => {
                   </Group>
                 </div>
               </div>
+              <div>
+                <div className="flex gap-2 items-center pb-3 ">
+                  <div className="w-14 h-5 bg-blue-600"></div>
+                  <p>メール発行</p>
+                </div>
+                <div className="flex gap-2 items-center pb-3">
+                  <div className="w-14 h-5 bg-green-600"></div>
+                  <p>依頼リスト発行</p>
+                </div>
+                <div className="flex gap-2 items-center pb-3">
+                  <div className="w-14 h-5 bg-red-600"></div>
+                  <p>依頼書発行</p>
+                </div>
+                <div className="flex gap-2 items-center pb-3">
+                  <div className="w-14 h-5 bg-black"></div>
+                  <p>仮依頼書発行</p>
+                </div>
+              </div>
             </div>
-            <div className="md:w-[90%] w-full h-[calc(100vh-100px)]">
+            <div className="md:w-[85%] w-full h-[calc(100vh-100px)]">
               <FullCalendar
                 height="100%"
                 expandRows={false}
@@ -237,16 +383,74 @@ const CalendarPage = () => {
                   listPlugin,
                 ]}
                 initialView="dayGridMonth"
+                // headerToolbar={{
+                //   left: "prevYear,prev,today,next,nextYear",
+                //   center: "title",
+                //   right: "dayGridMonth,listWeek,timeGridDay",
+                // }}
                 headerToolbar={{
                   left: "prevYear,prev,today,next,nextYear",
-                  center: "title",
-                  right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+                  center: "customInput",
+                  right: "dayGridMonth,listWeek,timeGridDay",
+                }}
+                customButtons={{
+                  customInput: {
+                    // text: "Select Date",
+                    click: (e) => {
+                      e.target.addEventListener("change", (e) => {
+                        handleDateChange(e.target.value);
+                      });
+                    },
+                  },
+                  today: {
+                    click: handleToday,
+                    text: "今日",
+                  },
+                  nextYear: {
+                    click: handleNextYear,
+                  },
+                  prevYear: {
+                    click: handlePrevYear,
+                  },
+                  next: {
+                    click: handleNextMonth,
+                  },
+                  prev: {
+                    click: handlePrevMonth,
+                  },
                 }}
                 locale={jaLocale}
                 weekends={true}
                 events={events}
                 selectable={true}
+                eventContent={(arg) => {
+                  return (
+                    <div
+                      style={{
+                        backgroundColor: arg.event.backgroundColor,
+                        color: arg.event.textColor,
+                      }}
+                    >
+                      <div>{arg.event.title}</div>
+                      <div
+                        style={{
+                          fontSize: "0.8em",
+                          color: arg.event.descriptionColor,
+                        }}
+                      >
+                        {arg.event.extendedProps.description}
+                      </div>
+                    </div>
+                  );
+                }}
                 eventClick={handleEventClick}
+                eventMouseEnter={handleEventMouseEnter}
+                eventMouseLeave={handleEventMouseLeave}
+                views={{
+                  listWeek: {
+                    buttonText: "週",
+                  },
+                }}
               />
             </div>
           </Col>
@@ -258,14 +462,22 @@ const CalendarPage = () => {
         start={start}
         isOpen={modal}
         toggle={handleCloseModal}
-        onCancel={handleCloseModal}>
-        <NewOrderFormPage title={title} start={start} />
+        onCancel={handleCloseModal}
+      >
+        <NewOrderFormPage
+          title={title}
+          start={start}
+          setModal={setModal}
+          delFlag={delFlag}
+          setDelFlag={setDelFlag}
+        />
       </CustomModal>
       <Modal
         open={orderModal}
         onCancel={orderClose}
         className="w-[80%]"
-        footer={false}>
+        footer={false}
+      >
         <NewOrderFormPage />
       </Modal>
       <FloatButton
@@ -275,6 +487,22 @@ const CalendarPage = () => {
         onClick={dashboard}
         icon={<AreaChartOutlined />}
       />
+      {tooltip.visible && (
+        <div
+          style={{
+            position: "absolute",
+            top: tooltip.position.top,
+            left: tooltip.position.left,
+            backgroundColor: "white",
+            border: "1px solid black",
+            padding: "5px",
+            zIndex: 1000,
+            width: "250px",
+          }}
+        >
+          {tooltip.content}
+        </div>
+      )}
     </div>
   );
 };

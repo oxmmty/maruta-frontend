@@ -1,35 +1,46 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import CTable from "src/components/CTable";
 import { Button, Form, Input, Popconfirm, Modal, notification } from "antd";
 import axios from "axios";
 
-const phoneNumberValidator = (_, value) => {
-  if (value && !/^(?:0\d{1,4}-\d{2,4}-\d{4})$/.test(value)) {
+const validateEmail = (_, value) => {
+  if (value && !/\S+@\S+\.\S+/.test(value)) {
     return Promise.reject(
-      new Error(
-        "有効な電話番号を入力してください！(例: 0287-36-8131, 045-392-6281, 03-5476-9812)"
-      )
+      new Error("有効なメールアドレスを入力してください！"),
     );
   }
-  // if (value && !/^[0-9]{10,11}$/.test(value)) {
-  //   return Promise.reject(
-  //     new Error("有効な電話番号を入力してください！(10桁または11桁の半角数字)"),
-  //   );
-  // }
+  return Promise.resolve();
+};
+
+const validateCC = (_, value) => {
+  if (value) {
+    const emails = value.split(",");
+    const emailRegex = /\S+@\S+\.\S+/;
+    const isValid = emails.every((email) => emailRegex.test(email.trim()));
+    return isValid
+      ? Promise.resolve()
+      : Promise.reject(
+          new Error("有効なメールアドレスをカンマで区切って入力してください！"),
+        );
+  }
+  return Promise.resolve(); // Allow empty value
+};
+
+const phoneNumberValidator = (_, value) => {
+  if (value && !/^[0-9]{10,11}$/.test(value)) {
+    return Promise.reject(
+      new Error("有効な電話番号を入力してください！(10桁または11桁の半角数字)"),
+    );
+  }
   return Promise.resolve();
 };
 
 const faxNumberValidator = (_, value) => {
-  if (value && !/^(?:0\d{1,4}-\d{2,4}-\d{4})$/.test(value)) {
+  if (value && !/^[0-9]{10,11}$/.test(value)) {
     return Promise.reject(
-      new Error("有効なFAX番号を入力してください！(例: 045-506-2901)")
+      new Error("有効なFAX番号を入力してください！(10桁または11桁の半角数字)"),
     );
   }
-  // if (value && !/^[0-9]{10,11}$/.test(value)) {
-  //   return Promise.reject(
-  //     new Error("有効なFAX番号を入力してください！(10桁または11桁の半角数字)"),
-  //   );
-  // }
   return Promise.resolve();
 };
 
@@ -38,15 +49,6 @@ const validateAddress = (_, value) => {
     return Promise.reject(new Error("住所は5文字以上で入力してください！"));
   }
   return Promise.resolve(); // Allow empty value
-};
-const postalCodeValidator = (_, value) => {
-  if (value && !/^\d{3}-\d{4}$/.test(value)) {
-    // Assuming the format is XXX-XXXX
-    return Promise.reject(
-      new Error("有効な郵便番号を入力してください！(例: 123-4567)")
-    );
-  }
-  return Promise.resolve();
 };
 
 const EditableCell = ({
@@ -60,17 +62,18 @@ const EditableCell = ({
 }) => {
   const getValidationRules = (dataIndex) => {
     switch (dataIndex) {
+      case "アドレス":
+        return [{ validator: validateEmail }];
+      case "CC":
+        return [{ validator: validateCC }];
       case "TEL":
         return [{ validator: phoneNumberValidator }];
       case "FAX":
         return [{ validator: faxNumberValidator }];
-      case "郵便番号":
-        return [{ validator: postalCodeValidator }];
-      // case "住所1":
-      //   return [{ validator: validateAddress }];
-
+      case "住所":
+        return [{ validator: validateAddress }];
       default:
-        return [{ required: false, message: `${title}を入力してください！` }];
+        return [{ required: true, message: `${title}を入力してください！` }];
     }
   };
 
@@ -80,8 +83,7 @@ const EditableCell = ({
         <Form.Item
           name={dataIndex}
           style={{ margin: 0 }}
-          rules={getValidationRules(dataIndex)}
-        >
+          rules={getValidationRules(dataIndex)}>
           <Input className="scrollable-input" />
         </Form.Item>
       ) : (
@@ -97,7 +99,6 @@ export default function PartnerCompanyPage() {
   const [datas, setDatas] = useState([]);
   const [editingKey, setEditingKey] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const address1Ref = useRef(null);
 
   useEffect(() => {
     fetchPartnerCompanies();
@@ -106,14 +107,14 @@ export default function PartnerCompanyPage() {
   const fetchPartnerCompanies = async () => {
     try {
       const res = await axios.get(
-        `${process.env.REACT_API_BASE_URL}/partnercompany`
+        `${process.env.REACT_API_BASE_URL}/partnercompany`,
       );
       const sortedData = res.data.sort((a, b) => b.カウント - a.カウント);
       setDatas(sortedData);
     } catch (error) {
       notification.error({
         message: "エラー",
-        description: "仕入先の読み込みに失敗しました。",
+        description: "協力会社の読み込みに失敗しました。",
       });
     }
   };
@@ -136,7 +137,7 @@ export default function PartnerCompanyPage() {
 
       await axios.put(
         `${process.env.REACT_API_BASE_URL}/partnercompany/${key}`,
-        updatedCompany
+        updatedCompany,
       );
 
       notification.success({
@@ -156,17 +157,17 @@ export default function PartnerCompanyPage() {
   const handleDelete = async (key) => {
     try {
       await axios.delete(
-        process.env.REACT_API_BASE_URL + `/partnercompany/${key}`
+        process.env.REACT_API_BASE_URL + `/partnercompany/${key}`,
       );
       notification.success({
         message: "成功",
-        description: "仕入先が正常に削除されました。",
+        description: "協力会社が正常に削除されました。",
       });
       fetchPartnerCompanies(); // Reload data after deletion
     } catch (error) {
       notification.error({
         message: "エラー",
-        description: "仕入先の削除に失敗しました。",
+        description: "協力会社の削除に失敗しました。",
       });
     }
   };
@@ -175,115 +176,48 @@ export default function PartnerCompanyPage() {
     try {
       await axios.post(
         `${process.env.REACT_API_BASE_URL}/partnercompany`,
-        values
+        values,
       );
       notification.success({
         message: "成功",
-        description: "仕入先が正常に追加されました。",
+        description: "協力会社が正常に追加されました。",
       });
       setIsModalVisible(false);
       fetchPartnerCompanies(); // Reload data after adding
     } catch (error) {
       notification.error({
         message: "エラー",
-        description: "仕入先の追加に失敗しました。",
+        description: "協力会社の追加に失敗しました。",
       });
     }
   };
-  // const handlePostalCodeChange = async (e) => {
-  //   const postalCode = e.target.value;
-  //   if (postalCode) {
-  //     try {
-  //       // Replace with your actual API endpoint and key
-  //       const response = await axios.get(`https://api.example.com/address?postalcode=${postalCode}`);
-  //       const addressData = response.data;
-
-  //       // Assuming the API returns an object with address fields
-  //       form.setFieldsValue({
-  //         住所1: addressData.address1, // Adjust based on actual response structure
-  //         住所: addressData.fullAddress, // If you have a full address field
-  //       });
-
-  //       address1Ref.current.focus(); // Focus on 住所1 input
-  //     } catch (error) {
-  //       notification.error({
-  //         message: "エラー",
-  //         description: "郵便番号から住所を取得できませんでした。",
-  //       });
-  //     }
-  //   }
-  // };
 
   const columns = [
     {
-      title: "企業CD",
-      dataIndex: "企業CD",
+      title: "協力会社",
+      dataIndex: "協力会社",
       editable: true,
       align: "center",
-      width: 90,
     },
     {
-      title: "仕入先CD",
-      dataIndex: "仕入先CD",
+      title: "担当",
+      dataIndex: "担当",
       editable: true,
       align: "center",
-      width: 100,
     },
     {
-      title: "企業名",
-      dataIndex: "企業名",
+      title: "アドレス",
+      dataIndex: "アドレス",
       editable: true,
       align: "center",
-      width: 250,
+      validationRules: [{ validator: validateEmail }],
     },
     {
-      title: "事業所",
-      dataIndex: "事業所",
+      title: "CC",
+      dataIndex: "CC",
       editable: true,
       align: "center",
-      width: 150,
-    },
-    {
-      title: "企業名ｶﾅ",
-      dataIndex: "企業名ｶﾅ",
-      editable: true,
-      align: "center",
-      width: 150,
-    },
-    {
-      title: "事業所ｶﾅ",
-      dataIndex: "事業所ｶﾅ",
-      editable: true,
-      align: "center",
-      width: 150,
-    },
-    {
-      title: "企業名略称",
-      dataIndex: "企業名略称",
-      editable: true,
-      align: "center",
-      width: 200,
-    },
-    {
-      title: "郵便番号",
-      dataIndex: "郵便番号",
-      editable: true,
-      align: "center",
-      validationRules: [{ validator: postalCodeValidator }],
-    },
-    {
-      title: "住所1",
-      dataIndex: "住所1",
-      editable: true,
-      align: "center",
-      width: 300,
-    },
-    {
-      title: "住所2",
-      dataIndex: "住所2",
-      editable: true,
-      align: "center",
-      width: 300,
+      validationRules: [{ validator: validateCC }],
     },
     {
       title: "TEL",
@@ -291,7 +225,6 @@ export default function PartnerCompanyPage() {
       editable: true,
       align: "center",
       validationRules: [{ validator: phoneNumberValidator }],
-      width: 150,
     },
     {
       title: "FAX",
@@ -299,62 +232,18 @@ export default function PartnerCompanyPage() {
       editable: true,
       align: "center",
       validationRules: [{ validator: faxNumberValidator }],
-      width: 150,
     },
     {
-      title: "担当者1",
-      dataIndex: "担当者1",
+      title: "住所",
+      dataIndex: "住所",
       editable: true,
       align: "center",
-      width: 150,
-    },
-    {
-      title: "担当者2",
-      dataIndex: "担当者2",
-      editable: true,
-      align: "center",
-      width: 150,
-    },
-    {
-      title: "担当者3",
-      dataIndex: "担当者3",
-      editable: true,
-      align: "center",
-      width: 150,
-      },
-    {
-      title: "担当者4",
-      dataIndex: "担当者4",
-      editable: true,
-      align: "center",
-      width: 150,
-      },
-    {
-      title: "担当者5",
-      dataIndex: "担当者5",
-      editable: true,
-      align: "center",
-      width: 150,
-    },
-    {
-      title: "運転手",
-      dataIndex: "運転手",
-      editable: true,
-      align: "center",
-      width: 150,
-    },
-    {
-      title: "車番",
-      dataIndex: "車番",
-      editable: true,
-      align: "center",
-      width: 150,
+      validationRules: [{ validator: validateAddress }],
     },
     {
       title: "操作",
       dataIndex: "operation",
       align: "center",
-      width: 200,
       render: (_, record) => {
         const editable = isEditing(record);
         return editable ? (
@@ -362,15 +251,12 @@ export default function PartnerCompanyPage() {
             <Button
               onClick={() => save(record._id)}
               type="link"
-              style={{ marginRight: 8 }}
-            >
+              style={{ marginRight: 8 }}>
               保存
             </Button>
-            
             <Popconfirm
               title="キャンセルしてもよろしいですか？"
-              onConfirm={cancel}
-            >
+              onConfirm={cancel}>
               <Button type="link">キャンセル</Button>
             </Popconfirm>
           </span>
@@ -379,14 +265,12 @@ export default function PartnerCompanyPage() {
             <Button
               type="link"
               disabled={editingKey !== ""}
-              onClick={() => edit(record)}
-            >
+              onClick={() => edit(record)}>
               編集
             </Button>
             <Popconfirm
               title="Are you sure to delete?"
-              onConfirm={() => handleDelete(record._id)}
-            >
+              onConfirm={() => handleDelete(record._id)}>
               <Button type="link" danger>
                 削除
               </Button>
@@ -405,7 +289,7 @@ export default function PartnerCompanyPage() {
       ...col,
       onCell: (record) => ({
         record,
-        inputtype: "text",
+        inputType: "text",
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),
@@ -428,9 +312,8 @@ export default function PartnerCompanyPage() {
           <Button
             onClick={showAddModal}
             type="primary"
-            className=" w-32 h-12 z-1"
-          >
-            仕入先を追加
+            className=" w-32 h-12 z-1">
+            協力会社を追加
           </Button>
         </div>
 
@@ -440,9 +323,8 @@ export default function PartnerCompanyPage() {
               cell: EditableCell,
             },
           }}
-          // virtualscroll={{ x: 2000, y: 500 }}
-          scroll={{ x: "max-content" }}
-          className="overflow-scroll w-full h-full"
+          virtualscroll={{ x: 2000, y: 500 }}
+          className="overflow-scroll"
           rowKey="_id"
           bordered
           dataSource={datas}
@@ -454,133 +336,38 @@ export default function PartnerCompanyPage() {
       </Form>
 
       <Modal
-        title="仕入先を追加"
+        title="協力会社を追加"
         visible={isModalVisible}
         onCancel={handleCancelModal}
-        footer={null}
-      >
+        footer={null}>
         <Form form={addForm} onFinish={handleAdd}>
-          <div className="flex justify-between">
-            <Form.Item
-              name="企業CD"
-              rules={[
-                { required: true, message: "「企業CDを入力してください！" },
-              ]}
-            >
-              <Input name="number" placeholder="企業CD" />
-            </Form.Item>
-            <Form.Item
-              name="仕入先CD"
-              rules={[
-                { required: true, message: "「仕入先CDを入力してください！" },
-              ]}
-            >
-              <Input name="number" placeholder="仕入先CD" />
-            </Form.Item>
-          </div>
-          <div className="flex justify-between">
-            <Form.Item
-              name="企業名"
-              rules={[
-                { required: true, message: "「企業名を入力してください！" },
-              ]}
-            >
-              <Input placeholder="企業名" />
-            </Form.Item>
-            <Form.Item
-              name="企業名ｶﾅ"
-              rules={[
-                { required: true, message: "「企業名ｶﾅを入力してください！" },
-              ]}
-            >
-              <Input
-                placeholder="企業名ｶﾅ"
-                rules={[
-                  {
-                    pattern: /^[ァ-ヶー]*$/,
-                    message: "カタカナのみ入力可能です",
-                  },
-                ]}
-              />
-            </Form.Item>
-          </div>
-          <div className="flex justify-between">
-            <Form.Item name="事業所">
-              <Input placeholder="事業所" />
-            </Form.Item>
-
-            <Form.Item name="事業所ｶﾅ">
-              <Input
-                placeholder="事業所ｶﾅ"
-                rules={[
-                  {
-                    pattern: /^[ァ-ヶー]*$/,
-                    message: "カタカナのみ入力可能です",
-                  },
-                ]}
-              />
-            </Form.Item>
-          </div>
           <Form.Item
-            name="企業名略称"
+            name="協力会社"
             rules={[
-              { required: true, message: "「企業名略称を入力してください！" },
-            ]}
-          >
-            <Input placeholder="企業名略称" />
+              { required: true, message: "「協力会社を入力してください！" },
+            ]}>
+            <Input placeholder="協力会社" />
           </Form.Item>
           <Form.Item
-            name="郵便番号"
-            rules={[{ validator: postalCodeValidator }]}
-          >
-            <Input placeholder="郵便番号" />
+            name="担当"
+            rules={[{ required: true, message: "担当を入力してください！" }]}>
+            <Input placeholder="担当" />
           </Form.Item>
-          <div className="flex justify-between">
-            <Form.Item name="住所1">
-              <Input placeholder="住所1" />
-            </Form.Item>
-            <Form.Item name="住所2">
-              <Input placeholder="住所2" />
-            </Form.Item>
-          </div>
-          <div className="flex justify-between">
-            <Form.Item name="TEL" rules={[{ validator: phoneNumberValidator }]}>
-              <Input placeholder="TEL" />
-            </Form.Item>
-            <Form.Item name="FAX" rules={[{ validator: faxNumberValidator }]}>
-              <Input placeholder="FAX" />
-            </Form.Item>
-          </div>
-          <div className="flex gap-2">
-            <Form.Item name="担当者1">
-              <Input placeholder="担当者1" />
-            </Form.Item>
-            <Form.Item name="担当者2">
-              <Input placeholder="担当者2" />
-            </Form.Item>
-            <Form.Item name="担当者3">
-              <Input placeholder="担当者3" />
-            </Form.Item>
-            <Form.Item name="担当者4">
-              <Input placeholder="担当者4" />
-            </Form.Item>
-            <Form.Item name="担当者5">
-              <Input placeholder="担当者5" />
-            </Form.Item>
-          </div>
-          <div className="flex justify-between">
-            <Form.Item
-              name="運転手"
-              rules={[
-                { required: true, message: "「運転手を入力してください！" },
-              ]}
-            >
-              <Input placeholder="運転手" />
-            </Form.Item>
-            <Form.Item name="車番">
-              <Input placeholder="車番" />
-            </Form.Item>
-          </div>
+          <Form.Item name="アドレス" rules={[{ validator: validateEmail }]}>
+            <Input placeholder="アドレス" />
+          </Form.Item>
+          <Form.Item name="CC" rules={[{ validator: validateCC }]}>
+            <Input placeholder="CC" />
+          </Form.Item>
+          <Form.Item name="TEL" rules={[{ validator: phoneNumberValidator }]}>
+            <Input placeholder="TEL" />
+          </Form.Item>
+          <Form.Item name="FAX" rules={[{ validator: faxNumberValidator }]}>
+            <Input placeholder="FAX" />
+          </Form.Item>
+          <Form.Item name="住所" rules={[{ validator: validateAddress }]}>
+            <Input placeholder="住所" />
+          </Form.Item>
           <Form.Item>
             <div className="flex justify-end">
               <Button type="primary" htmlType="submit">

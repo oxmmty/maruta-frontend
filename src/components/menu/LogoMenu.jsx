@@ -15,7 +15,10 @@ const LogoMenu = ({ children }) => {
     delete axios.defaults.headers.common['Authorization'];
     navigate('/login');
   }
-  
+  const onMember = () => {
+    localStorage.removeItem('token');
+    navigate('/settings_administration/userManagements');
+  }
   const items = [
     { 
       key: '1', 
@@ -41,7 +44,7 @@ const LogoMenu = ({ children }) => {
     { 
       key: '3', 
       label: (
-        <button className='flex gap-1 px-5'>
+        <button className='flex gap-1 px-5' onClick={onMember}>
           <FaUserFriends className='text-[25px] text-[#08c]'/>
           メンバー
         </button>
@@ -53,7 +56,7 @@ const LogoMenu = ({ children }) => {
       label: (
       <button className='flex gap-1 px-5' onClick={onLogOut}>
         <MdOutlineLogout className='text-[25px] text-[#08c]'/>
-        LogOut
+        ログアウト
       </button>
       ) 
     }

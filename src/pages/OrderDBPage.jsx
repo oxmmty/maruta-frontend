@@ -1,4 +1,4 @@
-import { DatePicker, Button, Typography, Checkbox } from "antd";
+import { DatePicker, Button, Typography, Checkbox, notification } from "antd";
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import axios from "axios";
@@ -7,9 +7,10 @@ const OrderDBPage = () => {
   const [date, setDate] = useState(dayjs());
   const [datas, setDatas] = useState([]);
   const [filteredDatas, setFilteredDatas] = useState([]);
-  
+  const formatNumber = (num) => {
+    return parseInt(num).toLocaleString("ja-JP");
+  };
 
-  
   const columns = [
     {
       title: "No",
@@ -171,6 +172,8 @@ const OrderDBPage = () => {
       dataIndex: "下払料金1",
       key: "下払料金1",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
+
     },
     {
       title: "下払課税1",
@@ -195,6 +198,7 @@ const OrderDBPage = () => {
       dataIndex: "下払料金2",
       key: "下払料金2",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "下払課税2",
@@ -219,6 +223,7 @@ const OrderDBPage = () => {
       dataIndex: "下払料金3",
       key: "下払料金3",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "下払課税3",
@@ -243,6 +248,7 @@ const OrderDBPage = () => {
       dataIndex: "下払料金4",
       key: "下払料金4",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "下払課税4",
@@ -267,6 +273,7 @@ const OrderDBPage = () => {
       dataIndex: "下払料金5",
       key: "下払料金5",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "下払課税5",
@@ -291,6 +298,7 @@ const OrderDBPage = () => {
       dataIndex: "下払料金6",
       key: "下払料金6",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "下払課税6",
@@ -327,18 +335,21 @@ const OrderDBPage = () => {
       dataIndex: "荷主保管料金リフトオフ",
       key: "荷主保管料金リフトオフ",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "荷主保管料金リフトオン",
       dataIndex: "荷主保管料金リフトオン",
       key: "荷主保管料金リフトオン",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "荷主保管料金1日",
       dataIndex: "荷主保管料金1日",
       key: "荷主保管料金1日",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "荷主保管課税",
@@ -351,18 +362,21 @@ const OrderDBPage = () => {
       dataIndex: "下払保管料金リフトオフ",
       key: "下払保管料金リフトオフ",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "下払保管料金リフトオン",
       dataIndex: "下払保管料金リフトオン",
       key: "下払保管料金リフトオン",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "下払保管料金1日",
       dataIndex: "下払保管料金1日",
       key: "下払保管料金1日",
       align: "center",
+      render: (text) => text ? `${formatNumber(text)}` : "0",
     },
     {
       title: "下払保管課税",
@@ -745,7 +759,10 @@ const OrderDBPage = () => {
       align: "center",
       fixed: "right",
       render: (text, record) => (
-        <Button type="primary" danger onClick={() => handleDelete(record._id)}>
+        <Button
+          type="primary"
+          danger
+          onClick={() => handleDelete(record.識別コード)}>
           削除
         </Button>
       ),
@@ -755,7 +772,6 @@ const OrderDBPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       const res = await axios.get("/orderlist");
-      console.log("res",res);
       const data = res.data.sort((a, b) => b.識別コード - a.識別コード);
       setDatas(data);
       filterData(dayjs().format("YYYY-MM"), res.data);
@@ -766,11 +782,26 @@ const OrderDBPage = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`/orderlist/${id}`); // Send DELETE request
-      setDatas(datas.filter((item) => item._id !== id)); // Update local state
-      setFilteredDatas(filteredDatas.filter((item) => item._id !== id)); // Update filtered data
+      setDatas((prevDatas) =>
+        prevDatas.map((item) =>
+          item.識別コード === id ? { ...item, delete: true } : item,
+        ),
+      );
+      setFilteredDatas((prevFilteredDatas) =>
+        prevFilteredDatas.map((item) =>
+          item.識別コード === id ? { ...item, delete: true } : item,
+        ),
+      );
+      notification.success({
+        message: "成功",
+        description: `注文「${id}」がキャンセルされました。`,
+      });
     } catch (error) {
       console.error("Error deleting item:", error);
-      alert("Failed to delete item");
+      notification.error({
+        message: "エラー",
+        description: `注文「${id}」のキャンセルに失敗しました。`,
+      });
     }
   };
 
@@ -815,6 +846,7 @@ const OrderDBPage = () => {
       console.error("Error updating payment confirmation:", error);
     }
   };
+  console.log(filteredDatas);
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="sm:flex-row justify-evenly w-full">
