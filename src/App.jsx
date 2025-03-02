@@ -86,11 +86,11 @@ const orders_invoices = [
     label: "メール",
     icon: <MailOutlined />,
   },
-  {
-    key: "billingList",
-    label: "請求一覧",
-    icon: <PayCircleOutlined />,
-  },
+  // {
+  //   key: "billingList",
+  //   label: "請求一覧",
+  //   icon: <PayCircleOutlined />,
+  // },
   {
     key: "work_completion_report",
     label: "作業完了報告書",
