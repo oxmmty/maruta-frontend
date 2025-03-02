@@ -375,9 +375,8 @@ const YearlyPLPage = () => {
     let totalMActualSum = 0;
     const filterOrderData = orderData.reduce((acc, item) => {
       const createdDate = dayjs(item.依頼書作成日);
-
       const year = createdDate.year();
-
+      
       if (!acc[year]) {
         acc[year] = {
           運送売上: 0,
@@ -390,6 +389,7 @@ const YearlyPLPage = () => {
           [`${year}SalesRatio`]: "0%",
         };
       }
+      
       acc[year].運送売上 += item.基本料金1;
       acc[year].利用運送 += item["3軸料金1"] + item.その他費用;
       acc[year].自社原価 += item.下払料金1;
@@ -440,7 +440,7 @@ const YearlyPLPage = () => {
         [`${year}SalesRatio`]: "0%",
       }),
     }));
-
+    
     if (classification === "運送売上") {
       setTotalMActual1(totalMActualSum);
     } else if (classification === "利用運送") {
@@ -460,7 +460,6 @@ const YearlyPLPage = () => {
     }
     return finalData;
   };
-
   const filterAccountplDataByYear = (selectedYear, accountplData, classification) => {
     const filterAccountplData = accountplData
       // .filter((item) => {
@@ -739,12 +738,15 @@ const YearlyPLPage = () => {
 
         return acc;
       }, {});
+
+
       let arrayFromEntries = Object.entries(filterAccountplData).map(
         ([year, values]) => ({
           year,
           ...values,
         })
       );
+
       const finalData = arrayFromEntries.map(({ year, ...rest }) => ({
         year,
         ...rest,
@@ -1627,7 +1629,6 @@ const YearlyPLPage = () => {
         ).toFixed(2)}%`;
       });
     });
-
     setFilteredData([
       filteredData13,
       filteredData14,

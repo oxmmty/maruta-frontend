@@ -124,7 +124,7 @@ const InvoiceMarutaPage = () => {
   };
 
   return (
-    <div className="w-full pl-5 pr-5 pt-3 pb-4">
+    <div className="w-full pl-5 pr-5 pt-3 pb-4"  ref={componentRef} >
       <div className="flex justify-between  border-b-2">
         {/* <Button type="primary" onClick={handleDownloadPDF}>
           PDF作成
@@ -303,7 +303,7 @@ const InvoiceMarutaPage = () => {
       <div className="flex flex-wrap flex-row w-full justify-between items-center gap-4 px-2">
         <div className="flex flex-col gap-4 mb-2"></div>
       </div>
-      <div ref={componentRef} className="bg-white">
+      <div className="bg-white">
         <table className="w-full table-auto border-collapse border border-black">
           <thead>
             <tr className="bg-gray-200 text-black">

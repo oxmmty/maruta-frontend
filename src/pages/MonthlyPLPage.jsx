@@ -320,7 +320,6 @@ const MonthlyPLPage = () => {
         axios.get(process.env.REACT_API_BASE_URL + `/accountpl`),
         axios.get(process.env.REACT_API_BASE_URL + `/account`),
       ]);
-
       setOrderData(orders.data);
       setAccountplData(accountpls.data);
       filterOrderDataByYear(selectedYear, orders.data);
@@ -338,7 +337,8 @@ const MonthlyPLPage = () => {
     const filterOrderData = orderData
       .filter((item) => {
         const itemYear = dayjs(item.依頼書作成日).year();
-        return itemYear === year.year() && item.invoicePublished;
+        // return itemYear === year.year() && item.invoicePublished;
+        return itemYear
       })
       .reduce((acc, item) => {
         const createdDate = dayjs(item.依頼書作成日);
@@ -476,7 +476,6 @@ const MonthlyPLPage = () => {
             classification === "従業員人件費" &&
             item.accountList === "従業員人件費"
           ) {
-            console.log("compare" ,item);
             setTotalPlan14(item.accountAmount);
           } else if (
             classification === "賃借料" &&
@@ -943,7 +942,6 @@ const MonthlyPLPage = () => {
         accountAmount,
       };
     });
-    console.log("data====>", data);
     try {
       const response = await fetch(
         `${process.env.REACT_API_BASE_URL}/accountpl`,
@@ -955,13 +953,12 @@ const MonthlyPLPage = () => {
           body: JSON.stringify(data),
         }
       );
-
+      
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-
+      
       const result = await response.json();
-      console.log("Update successful:", result);
     } catch (error) {
       console.error("Error updating data:", error);
     } finally {
@@ -979,7 +976,6 @@ const MonthlyPLPage = () => {
 
   const handleDateChange = (date) => {
     setSelectedYear(date);
-    console.log(date);
   };
   useEffect(() => {
      setTotalSalesProfit(totalMActual1 + totalMActual2 + totalMActual3 - totalMActual5 - totalMActual6 - totalMActual7);

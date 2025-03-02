@@ -165,7 +165,7 @@ const Storage = ({ setStorageData, editData }, { className = "" }) => {
   return (
     <div className={`${className}`}>
       <Group label={"保管"}>
-        <Form.Item label={"保管場所"}>
+        <Form.Item label={"保管場所"} required>
           <Select
             showSearch
             value={selectedValueStorageLocation}
@@ -192,7 +192,7 @@ const Storage = ({ setStorageData, editData }, { className = "" }) => {
           </Select>
         </Form.Item>
         <div className="flex flex-wrap flex-row items-center gap-x-4">
-          <Form.Item label={"入庫日"} style={{ width: 100 }} className="grow">
+          <Form.Item label={"入庫日"} required style={{ width: 100 }} className="grow">
             <DatePicker
               className="w-full"
               required
@@ -205,7 +205,7 @@ const Storage = ({ setStorageData, editData }, { className = "" }) => {
               }}
             />
           </Form.Item>
-          <Form.Item label={"出庫日"} style={{ width: 100 }} className="grow">
+          <Form.Item label={"出庫日"} required style={{ width: 100 }} className="grow">
             <DatePicker
               className="w-full"
               required
@@ -222,25 +222,28 @@ const Storage = ({ setStorageData, editData }, { className = "" }) => {
 
         <Group label={"料金"}>
           <div className="flex flex-wrap flex-row items-center gap-x-4">
-            <Form.Item label={"荷主リフトオフ"} className="grow w-32">
+            <Form.Item label={"荷主リフトオフ"} required className="grow w-32">
               <Input
+                type="number"
                 required
                 className="w-full"
                 value={shipperLiftOff}
                 onChange={(e) => setShipperLiftOff(e.target.value)}
               />
             </Form.Item>
-            <Form.Item label={"荷主リフトオン"} className="grow w-32">
+            <Form.Item label={"荷主リフトオン"} required className="grow w-32">
               <Input
                 required
+                type="number"
                 value={shipperLiftOn}
                 className="w-full"
                 onChange={(e) => setShipperLiftOn(e.target.value)}
               />
             </Form.Item>
-            <Form.Item label={"荷主保管/日"} className="grow w-32">
+            <Form.Item label={"荷主保管/日"} required className="grow w-32">
               <Input
                 required
+                type="number"
                 className="w-full"
                 value={shipperPrice}
                 onChange={(e) => setShipperPrice(e.target.value)}
@@ -258,25 +261,28 @@ const Storage = ({ setStorageData, editData }, { className = "" }) => {
           </div>
 
           <div className="flex flex-wrap flex-row items-center gap-x-4">
-            <Form.Item label={"下払リフトオフ"} className="grow w-32">
+            <Form.Item label={"下払リフトオフ"} required className="grow w-32">
               <Input
                 required
+                type="number"
                 value={subLiftOff}
                 className="w-full"
                 onChange={(e) => setSubLiftOff(e.target.value)}
               />
             </Form.Item>
-            <Form.Item label={"下払リフトオン"} className="grow w-32">
+            <Form.Item label={"下払リフトオン"} required className="grow w-32">
               <Input
                 required
+                type="number"
                 value={subLiftOn}
                 className="w-full"
                 onChange={(e) => setSubLiftOn(e.target.value)}
               />
             </Form.Item>
-            <Form.Item label={"下払保管/日"} className="grow w-32">
+            <Form.Item label={"下払保管/日"} required className="grow w-32">
               <Input
                 required
+                type="number"
                 value={subPrice}
                 className="w-full"
                 onChange={(e) => setSubPrice(e.target.value)}
